@@ -1,0 +1,37 @@
+# ---- secrets (never commit) ----
+scripts/wandb_secret.sh
+*secret*
+*.key
+*.pem
+.env
+.env.*
+
+# ---- reference clones / staging (not this project's own code) ----
+discover/
+_qwen_stage/
+problem-statement/
+
+# ---- large data / artifacts (live on the cluster, not in git) ----
+*.sif
+*.safetensors
+*.pt
+*.pth
+*.bin
+*.ckpt
+models/
+ckpts/
+checkpoints/
+cache/
+hf_cache/
+logs/
+wandb/
+frontiercs/testdata/
+*.tar
+*.tar.gz
+
+# ---- python / tooling ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+.DS_Store
