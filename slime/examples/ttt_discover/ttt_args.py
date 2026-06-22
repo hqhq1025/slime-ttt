@@ -92,6 +92,24 @@ def add_ttt_arguments(parser):
         help="Max judge score for the problem (used to normalize reward and show target).",
     )
     group.add_argument(
+        "--ttt-frontiercs-reward-mode",
+        type=str,
+        choices=["score", "sum_value", "mean_value"],
+        default="score",
+        help="How the remote judge result becomes the reward. 'score' (DEFAULT, original: "
+        "normalized judge points) | 'sum_value' (sum of each case's 'Value:' parsed from "
+        "cases[].msg — a dense, nonzero signal even when every case scores 0 points; for "
+        "objective problems like 159) | 'mean_value' (sum_value / num_cases).",
+    )
+    group.add_argument(
+        "--ttt-frontiercs-value-scale",
+        type=float,
+        default=1.0,
+        help="Multiplier on the sum_value/mean_value reward. The entropic advantage is "
+        "scale-invariant, so this only changes the logged magnitude (e.g. 1e-6 to keep "
+        "best_raw readable).",
+    )
+    group.add_argument(
         "--ttt-judge-backend",
         type=str,
         choices=["local", "remote"],

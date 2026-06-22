@@ -227,6 +227,10 @@ def _init_wandb_common():
     wandb.define_metric("rollout/*", step_metric="rollout/step")
     wandb.define_metric("multi_turn/*", step_metric="rollout/step")
     wandb.define_metric("passrate/*", step_metric="rollout/step")
+    # TTT-Discover plugin emits ttt/* in the same log call as rollout/step; bind it to
+    # that axis too, else it falls back to wandb's internal _step (which advances once
+    # per wandb.log() call -> ~4 per iteration -> "a point every 4 steps").
+    wandb.define_metric("ttt/*", step_metric="rollout/step")
     wandb.define_metric("eval/step")
     wandb.define_metric("eval/*", step_metric="eval/step")
     wandb.define_metric("perf/*", step_metric="rollout/step")

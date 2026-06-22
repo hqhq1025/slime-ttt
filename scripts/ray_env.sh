@@ -35,5 +35,6 @@ ENVS="--env HF_HOME=/hf_cache --env HUGGINGFACE_HUB_CACHE=/hf_cache --env XDG_CA
 --env CUDA_DEVICE_MAX_CONNECTIONS=1 --env PYTHONPATH=/root/slime:/root/Megatron-LM \
 --env NCCL_SOCKET_IFNAME=ens11f0np0 --env GLOO_SOCKET_IFNAME=ens11f0np0 --env NCCL_DEBUG=WARN \
 --env RAY_ADDRESS=${HEAD_IP}:${PORT} \
+--env no_proxy=localhost,127.0.0.1,10.0.0.0/8,.hyak.local,hyak.local,hyakm.washington.edu --env NO_PROXY=localhost,127.0.0.1,10.0.0.0/8,.hyak.local,hyak.local,hyakm.washington.edu \
 --env WANDB_DIR=$PROJ/logs/wandb --env WANDB_CACHE_DIR=$PROJ/cache/wandb --env WANDB_CONFIG_DIR=$PROJ/cache/wandb \
 --env WANDB_API_KEY=${WANDB_API_KEY:-}"

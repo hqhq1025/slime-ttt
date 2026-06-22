@@ -51,5 +51,7 @@ ray job submit --address=http://127.0.0.1:8265 \
   --attention-dropout 0.0 --hidden-dropout 0.0 \
   --accumulate-allreduce-grads-in-fp32 --attention-softmax-in-fp32 --attention-backend flash \
   --rollout-num-gpus 16 --rollout-num-gpus-per-engine 2 \
-  --sglang-mem-fraction-static 0.6 --sglang-cuda-graph-max-bs 16 --sglang-max-running-requests 64 \
+  --sglang-mem-fraction-static 0.6 --sglang-max-running-requests 64 \
+  --sglang-disable-custom-all-reduce \
+  --sglang-router-request-timeout-secs 3600 \
   --use-wandb --wandb-project $WPROJ --wandb-group $WGROUP

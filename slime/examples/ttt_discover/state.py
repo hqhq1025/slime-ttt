@@ -79,7 +79,7 @@ class State:
     # ---- prompt conditioning (port of TTT-Discover State.to_prompt) ----
     def to_prompt(
         self,
-        target: float,
+        target: float | None,
         metric_name: str = "value",
         maximize: bool = True,
         language: str = "",
@@ -93,22 +93,37 @@ class State:
         else:
             ctx += "\nNo previous code available."
 
+        # When there is no fixed cap (target is None, e.g. an unbounded objective Value),
+        # frame it as "push as far as possible" instead of showing a misleading gap.
+        no_cap = (
+            f"\nThere is no fixed cap — make {metric_name} as {'large' if maximize else 'small'} "
+            "as possible; further improvements are always generously rewarded."
+        )
         if self.parent_values and self.value is not None and self.construction is not None:
             before = self.parent_values[0] if maximize else -self.parent_values[0]
             after = self.value if maximize else -self.value
-            gap = target - after if maximize else after - target
             ctx += (
                 f"\nHere is the {metric_name} before and after running the code above "
                 f"({direction} is better): {before:.6f} -> {after:.6f}"
             )
-            ctx += f"\nTarget: {target}. Current gap: {gap:.6f}. Further improvements will also be generously rewarded."
+            if target is not None:
+                gap = target - after if maximize else after - target
+                ctx += f"\nTarget: {target}. Current gap: {gap:.6f}. Further improvements will also be generously rewarded."
+            else:
+                ctx += no_cap
         elif self.value is not None:
             after = self.value if maximize else -self.value
-            gap = target - after if maximize else after - target
             ctx += f"\nCurrent {metric_name}: {after:.6f}"
-            ctx += f"\nTarget: {target}. Current gap: {gap:.6f}. Further improvements will also be generously rewarded."
+            if target is not None:
+                gap = target - after if maximize else after - target
+                ctx += f"\nTarget: {target}. Current gap: {gap:.6f}. Further improvements will also be generously rewarded."
+            else:
+                ctx += no_cap
         else:
-            ctx += f"\nTarget {metric_name}: {target}"
+            ctx += (
+                f"\nTarget {metric_name}: {target}" if target is not None
+                else f"\nOptimize for the {direction}est {metric_name} you can achieve."
+            )
 
         if self.observation and self.observation.strip():
             stdout = self.observation.strip()

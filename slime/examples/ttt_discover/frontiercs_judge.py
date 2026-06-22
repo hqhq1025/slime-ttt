@@ -38,10 +38,31 @@ class JudgeResult:
     status: str            # ok | compile_error | runtime_error | tle | wa | error
     msg: str = ""
     detail: dict = field(default_factory=dict)
+    sum_value: float = 0.0  # sum of per-case "Value:" (remote judge cases[].msg); 0 if N/A
+    num_cases: int = 0      # number of cases the judge reported
 
     @property
     def normalized(self) -> float:
         return self.score / self.max_score if self.max_score else 0.0
+
+    @property
+    def mean_value(self) -> float:
+        return self.sum_value / self.num_cases if self.num_cases else 0.0
+
+
+# Per-case objective value, e.g. "points 0.0 Value: 449381. Ratio: 0.0000, ...".
+_VALUE_RE = re.compile(r"Value:\s*([-+]?\d+(?:\.\d+)?)")
+
+
+def _sum_case_values(cases) -> tuple[float, int]:
+    """Sum the 'Value:' field across judge cases (dense signal even at 0 points)."""
+    total, n = 0.0, 0
+    for c in cases or []:
+        n += 1
+        m = _VALUE_RE.search(str((c or {}).get("msg", "")))
+        if m:
+            total += float(m.group(1))
+    return total, n
 
 
 # --------------------------------------------------------------------------- #
@@ -118,13 +139,17 @@ def remote_judge(
     score = float(data.get(score_key, data.get("score", 0.0)) or 0.0)
     passed = bool(data.get("passed", False))
     result = str(data.get("result", "unknown"))
+    # Dense per-case objective signal — nonzero even when points are 0 (problem 159).
+    sum_value, num_cases = _sum_case_values(data.get("cases"))
     # "score" is out of max_score; scoreUnbounded is raw (no normalization).
     ms = max_score if score_key == "score" else 1.0
     status = "ok" if passed else result
     return JudgeResult(
         score=score, max_score=ms, status=status, msg=result,
+        sum_value=sum_value, num_cases=num_cases,
         detail={"sid": sid, "passed": passed, "result": result,
-                "score": data.get("score"), "scoreUnbounded": data.get("scoreUnbounded")},
+                "score": data.get("score"), "scoreUnbounded": data.get("scoreUnbounded"),
+                "sum_value": sum_value, "num_cases": num_cases},
     )
 
 

@@ -9,6 +9,7 @@ PROBLEM_ID=${PROBLEM_ID:-0}
 JUDGE_BACKEND=${JUDGE_BACKEND:-remote}
 JUDGE_URL=${JUDGE_URL:-https://yanagiorigami.uk}
 RBS=${RBS:-4}; NSAMP=${NSAMP:-16}; GBS=$((RBS*NSAMP))
+REWARD_MODE=${REWARD_MODE:-score}; VALUE_SCALE=${VALUE_SCALE:-1.0}   # 159: sum_value (dense per-case Value)
 CKPT=$PROJ/ckpts/p${PROBLEM_ID}                 # per-problem: each problem trains fresh from --ref-load
 mkdir -p "$CKPT" "$PROJ/logs"
 LOAD_ARG=""; [ -f "$CKPT/latest_checkpointed_iteration.txt" ] && LOAD_ARG="--load $CKPT"
@@ -29,6 +30,7 @@ ray job submit --address=http://127.0.0.1:8265 \
   --ttt-env-path examples.ttt_discover.envs.frontiercs.FrontierCSEnv \
   --ttt-frontiercs-problems-dir $PROJ/frontiercs/problems \
   --ttt-frontiercs-problem-id $PROBLEM_ID --ttt-frontiercs-max-score 100.0 \
+  --ttt-frontiercs-reward-mode $REWARD_MODE --ttt-frontiercs-value-scale $VALUE_SCALE \
   --ttt-judge-backend $JUDGE_BACKEND $JUDGE_ARG \
   --ttt-eval-timeout 300 --ttt-eval-concurrency 32 --ttt-judge-max-cases 1 \
   --disable-rollout-global-dataset --apply-chat-template \
