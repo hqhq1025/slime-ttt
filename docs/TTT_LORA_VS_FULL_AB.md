@@ -83,9 +83,10 @@ full-parameter result, about 0.063% of the full result. It is nevertheless
 consistent across the best-so-far curve and the valid-score quantiles.
 
 This is one online run per method, not a multi-seed statistical result. Initial
-sampling trajectories differ, and the LoRA run disabled SGLang CUDA graphs to
-avoid an intermittent startup hang. CUDA graphs should not change model
-semantics, but a stronger causal claim requires multiple paired seeds and a
+sampling trajectories differ. The historical LoRA run disabled SGLang CUDA
+graphs as a workaround for an intermittent startup hang; current launchers no
+longer apply that workaround because it made wall-clock comparisons asymmetric.
+A stronger causal claim still requires multiple paired seeds and a
 learning-rate/rank sweep.
 
 ## Evidence

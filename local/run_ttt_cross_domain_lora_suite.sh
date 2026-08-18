@@ -33,7 +33,7 @@ run_one mla full env \
   "${LOCAL_DIR}/run_ttt_mla_decode_a100_smoke.sh"
 run_one mla lora env \
   TTT_RUN_NAME=qwen3-4b-ttt-mla-a100-lora-r32-pair-2step \
-  TTT_NUM_ROLLOUT=2 TTT_LORA_RANK=32 TTT_LORA_ALPHA=32 TTT_LR=4e-5 TTT_SGLANG_DISABLE_CUDA_GRAPH=1 \
+  TTT_NUM_ROLLOUT=2 TTT_LORA_RANK=32 TTT_LORA_ALPHA=32 TTT_LR=4e-5 \
   "${LOCAL_DIR}/run_ttt_mla_decode_a100_smoke.sh"
 
 for task in ahc039 ahc058; do
@@ -44,7 +44,7 @@ for task in ahc039 ahc058; do
     "${launcher}"
   run_one "${task}" lora env \
     TTT_RUN_NAME=qwen3-4b-ttt-${task}-lora-r32-pair-2step \
-    TTT_NUM_ROLLOUT=2 TTT_LORA_RANK=32 TTT_LORA_ALPHA=32 TTT_LR=4e-5 TTT_SGLANG_DISABLE_CUDA_GRAPH=1 \
+    TTT_NUM_ROLLOUT=2 TTT_LORA_RANK=32 TTT_LORA_ALPHA=32 TTT_LR=4e-5 \
     "${launcher}"
 done
 
@@ -54,7 +54,7 @@ run_one denoising full env \
   "${LOCAL_DIR}/run_ttt_denoising_smoke.sh"
 run_one denoising lora env \
   TTT_RUN_NAME=qwen3-4b-ttt-denoising-lora-r32-pair-2step \
-  TTT_NUM_ROLLOUT=2 TTT_LORA_RANK=32 TTT_LORA_ALPHA=32 TTT_LR=4e-5 TTT_SGLANG_DISABLE_CUDA_GRAPH=1 \
+  TTT_NUM_ROLLOUT=2 TTT_LORA_RANK=32 TTT_LORA_ALPHA=32 TTT_LR=4e-5 \
   "${LOCAL_DIR}/run_ttt_denoising_smoke.sh"
 
 echo "[LoRA suite] results: ${RESULTS}"
