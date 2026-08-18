@@ -1,0 +1,937 @@
+{
+  "task": "AHC039 released solver public replay",
+  "scope": "officially generated public seeds 0..149 with official tester",
+  "disclaimer": "Not equivalent to the AtCoder hidden-test score reported in the paper.",
+  "source": "/data/haoqing/ttt-discover-official/results/algorithm-design/ahc039.cpp",
+  "tester": "/data/haoqing/ahc-cache-download/extracted/cache/tester_binaries/ahc039_tester",
+  "workers": 1,
+  "host_logical_cpus": 128,
+  "num_cases": 150,
+  "accepted": 145,
+  "status_counts": {
+    "AC": 145,
+    "RE": 5
+  },
+  "all_cases_valid": false,
+  "official_all_or_nothing_score": 0,
+  "aggregate_score_ac_only": 551369,
+  "mean_score": 3802.544827586207,
+  "median_score": 3844,
+  "min_score": 2722,
+  "max_score": 4564,
+  "compile_seconds": 3.544754165923223,
+  "wall_seconds": 302.470342699904,
+  "sum_case_seconds": 298.84825614281,
+  "cases": [
+    {
+      "seed": 0,
+      "status": "AC",
+      "score": 3622,
+      "seconds": 2.020189356058836
+    },
+    {
+      "seed": 1,
+      "status": "AC",
+      "score": 4156,
+      "seconds": 1.9688568208366632
+    },
+    {
+      "seed": 2,
+      "status": "AC",
+      "score": 3405,
+      "seconds": 1.9661510039586574
+    },
+    {
+      "seed": 3,
+      "status": "AC",
+      "score": 3953,
+      "seconds": 1.9782357118092477
+    },
+    {
+      "seed": 4,
+      "status": "AC",
+      "score": 3912,
+      "seconds": 1.994113793829456
+    },
+    {
+      "seed": 5,
+      "status": "AC",
+      "score": 3581,
+      "seconds": 1.9734153200406581
+    },
+    {
+      "seed": 6,
+      "status": "AC",
+      "score": 4093,
+      "seconds": 1.9879625299945474
+    },
+    {
+      "seed": 7,
+      "status": "AC",
+      "score": 4346,
+      "seconds": 1.9899217230267823
+    },
+    {
+      "seed": 8,
+      "status": "AC",
+      "score": 3993,
+      "seconds": 1.9892824720591307
+    },
+    {
+      "seed": 9,
+      "status": "AC",
+      "score": 4122,
+      "seconds": 1.9899218438658863
+    },
+    {
+      "seed": 10,
+      "status": "AC",
+      "score": 3933,
+      "seconds": 1.9956671590916812
+    },
+    {
+      "seed": 11,
+      "status": "AC",
+      "score": 3185,
+      "seconds": 2.0379080458078533
+    },
+    {
+      "seed": 12,
+      "status": "AC",
+      "score": 3728,
+      "seconds": 2.0345666429493576
+    },
+    {
+      "seed": 13,
+      "status": "AC",
+      "score": 3811,
+      "seconds": 1.9612970449961722
+    },
+    {
+      "seed": 14,
+      "status": "AC",
+      "score": 4304,
+      "seconds": 2.0036603349726647
+    },
+    {
+      "seed": 15,
+      "status": "AC",
+      "score": 3368,
+      "seconds": 2.011439444962889
+    },
+    {
+      "seed": 16,
+      "status": "AC",
+      "score": 4114,
+      "seconds": 2.0091086770407856
+    },
+    {
+      "seed": 17,
+      "status": "RE",
+      "score": null,
+      "returncode": -8,
+      "seconds": 1.9477209728211164,
+      "message": "candidate exited with return code -8"
+    },
+    {
+      "seed": 18,
+      "status": "RE",
+      "score": null,
+      "returncode": -8,
+      "seconds": 1.9406738558318466,
+      "message": "candidate exited with return code -8"
+    },
+    {
+      "seed": 19,
+      "status": "AC",
+      "score": 3868,
+      "seconds": 2.025769026018679
+    },
+    {
+      "seed": 20,
+      "status": "AC",
+      "score": 3420,
+      "seconds": 1.9956933308858424
+    },
+    {
+      "seed": 21,
+      "status": "AC",
+      "score": 3847,
+      "seconds": 1.9896141751669347
+    },
+    {
+      "seed": 22,
+      "status": "AC",
+      "score": 3074,
+      "seconds": 1.9904124999884516
+    },
+    {
+      "seed": 23,
+      "status": "AC",
+      "score": 3908,
+      "seconds": 1.9850202549714595
+    },
+    {
+      "seed": 24,
+      "status": "AC",
+      "score": 3477,
+      "seconds": 1.9784547148738056
+    },
+    {
+      "seed": 25,
+      "status": "AC",
+      "score": 3522,
+      "seconds": 1.9909369051456451
+    },
+    {
+      "seed": 26,
+      "status": "AC",
+      "score": 3449,
+      "seconds": 1.9828450549393892
+    },
+    {
+      "seed": 27,
+      "status": "AC",
+      "score": 3993,
+      "seconds": 2.006363688968122
+    },
+    {
+      "seed": 28,
+      "status": "AC",
+      "score": 4223,
+      "seconds": 1.9827241599559784
+    },
+    {
+      "seed": 29,
+      "status": "AC",
+      "score": 3466,
+      "seconds": 1.993620216846466
+    },
+    {
+      "seed": 30,
+      "status": "AC",
+      "score": 3764,
+      "seconds": 1.9835666629951447
+    },
+    {
+      "seed": 31,
+      "status": "AC",
+      "score": 4020,
+      "seconds": 1.9930905289947987
+    },
+    {
+      "seed": 32,
+      "status": "AC",
+      "score": 4141,
+      "seconds": 1.9892981750890613
+    },
+    {
+      "seed": 33,
+      "status": "AC",
+      "score": 4244,
+      "seconds": 2.009375212015584
+    },
+    {
+      "seed": 34,
+      "status": "AC",
+      "score": 3865,
+      "seconds": 1.9951508049853146
+    },
+    {
+      "seed": 35,
+      "status": "AC",
+      "score": 3940,
+      "seconds": 1.9938924419693649
+    },
+    {
+      "seed": 36,
+      "status": "AC",
+      "score": 3811,
+      "seconds": 1.9775045670103282
+    },
+    {
+      "seed": 37,
+      "status": "AC",
+      "score": 4351,
+      "seconds": 1.9892055650707334
+    },
+    {
+      "seed": 38,
+      "status": "AC",
+      "score": 3905,
+      "seconds": 2.007994175190106
+    },
+    {
+      "seed": 39,
+      "status": "AC",
+      "score": 4085,
+      "seconds": 1.9852606388740242
+    },
+    {
+      "seed": 40,
+      "status": "AC",
+      "score": 4307,
+      "seconds": 1.98061831202358
+    },
+    {
+      "seed": 41,
+      "status": "AC",
+      "score": 3399,
+      "seconds": 1.9774810129310936
+    },
+    {
+      "seed": 42,
+      "status": "AC",
+      "score": 3372,
+      "seconds": 1.985215077875182
+    },
+    {
+      "seed": 43,
+      "status": "AC",
+      "score": 3060,
+      "seconds": 1.9906110030133277
+    },
+    {
+      "seed": 44,
+      "status": "AC",
+      "score": 3357,
+      "seconds": 2.000868608010933
+    },
+    {
+      "seed": 45,
+      "status": "AC",
+      "score": 3492,
+      "seconds": 1.9974334491416812
+    },
+    {
+      "seed": 46,
+      "status": "AC",
+      "score": 4187,
+      "seconds": 1.9909234868828207
+    },
+    {
+      "seed": 47,
+      "status": "AC",
+      "score": 3956,
+      "seconds": 1.9963147570379078
+    },
+    {
+      "seed": 48,
+      "status": "AC",
+      "score": 3792,
+      "seconds": 1.9929739809595048
+    },
+    {
+      "seed": 49,
+      "status": "AC",
+      "score": 3939,
+      "seconds": 1.9906529870349914
+    },
+    {
+      "seed": 50,
+      "status": "AC",
+      "score": 4048,
+      "seconds": 1.9859923978801817
+    },
+    {
+      "seed": 51,
+      "status": "AC",
+      "score": 3491,
+      "seconds": 1.9977186431642622
+    },
+    {
+      "seed": 52,
+      "status": "AC",
+      "score": 3742,
+      "seconds": 1.9720392599701881
+    },
+    {
+      "seed": 53,
+      "status": "AC",
+      "score": 4028,
+      "seconds": 2.0045540840364993
+    },
+    {
+      "seed": 54,
+      "status": "AC",
+      "score": 3468,
+      "seconds": 1.9906011510174721
+    },
+    {
+      "seed": 55,
+      "status": "AC",
+      "score": 3582,
+      "seconds": 1.9778955669607967
+    },
+    {
+      "seed": 56,
+      "status": "AC",
+      "score": 3246,
+      "seconds": 1.9803129190113395
+    },
+    {
+      "seed": 57,
+      "status": "AC",
+      "score": 4354,
+      "seconds": 1.9935314590111375
+    },
+    {
+      "seed": 58,
+      "status": "AC",
+      "score": 2722,
+      "seconds": 1.982917282031849
+    },
+    {
+      "seed": 59,
+      "status": "AC",
+      "score": 4411,
+      "seconds": 1.976527838036418
+    },
+    {
+      "seed": 60,
+      "status": "AC",
+      "score": 4184,
+      "seconds": 1.991786229191348
+    },
+    {
+      "seed": 61,
+      "status": "AC",
+      "score": 4330,
+      "seconds": 1.9898882629349828
+    },
+    {
+      "seed": 62,
+      "status": "AC",
+      "score": 3825,
+      "seconds": 2.001378627959639
+    },
+    {
+      "seed": 63,
+      "status": "AC",
+      "score": 3851,
+      "seconds": 1.9915422040503472
+    },
+    {
+      "seed": 64,
+      "status": "AC",
+      "score": 3587,
+      "seconds": 1.9928570829797536
+    },
+    {
+      "seed": 65,
+      "status": "AC",
+      "score": 4171,
+      "seconds": 1.976234044879675
+    },
+    {
+      "seed": 66,
+      "status": "AC",
+      "score": 4334,
+      "seconds": 1.9986852381844074
+    },
+    {
+      "seed": 67,
+      "status": "AC",
+      "score": 3380,
+      "seconds": 1.999330764170736
+    },
+    {
+      "seed": 68,
+      "status": "AC",
+      "score": 4148,
+      "seconds": 1.9979426020290703
+    },
+    {
+      "seed": 69,
+      "status": "AC",
+      "score": 3976,
+      "seconds": 1.9865774039644748
+    },
+    {
+      "seed": 70,
+      "status": "AC",
+      "score": 3144,
+      "seconds": 1.9916675791610032
+    },
+    {
+      "seed": 71,
+      "status": "AC",
+      "score": 4361,
+      "seconds": 2.007615142967552
+    },
+    {
+      "seed": 72,
+      "status": "AC",
+      "score": 3496,
+      "seconds": 2.017039735103026
+    },
+    {
+      "seed": 73,
+      "status": "AC",
+      "score": 3315,
+      "seconds": 1.9995409480761737
+    },
+    {
+      "seed": 74,
+      "status": "AC",
+      "score": 4366,
+      "seconds": 1.9772451180033386
+    },
+    {
+      "seed": 75,
+      "status": "AC",
+      "score": 4336,
+      "seconds": 1.9907026481814682
+    },
+    {
+      "seed": 76,
+      "status": "AC",
+      "score": 4367,
+      "seconds": 1.9988627440761775
+    },
+    {
+      "seed": 77,
+      "status": "AC",
+      "score": 3985,
+      "seconds": 1.9897090450394899
+    },
+    {
+      "seed": 78,
+      "status": "AC",
+      "score": 4353,
+      "seconds": 1.9928383911028504
+    },
+    {
+      "seed": 79,
+      "status": "AC",
+      "score": 4171,
+      "seconds": 1.9784330630209297
+    },
+    {
+      "seed": 80,
+      "status": "AC",
+      "score": 3854,
+      "seconds": 2.0157239579129964
+    },
+    {
+      "seed": 81,
+      "status": "AC",
+      "score": 4110,
+      "seconds": 1.9939421738963574
+    },
+    {
+      "seed": 82,
+      "status": "AC",
+      "score": 3334,
+      "seconds": 1.9847981191705912
+    },
+    {
+      "seed": 83,
+      "status": "AC",
+      "score": 4517,
+      "seconds": 1.9875522591173649
+    },
+    {
+      "seed": 84,
+      "status": "AC",
+      "score": 4564,
+      "seconds": 1.9947982640005648
+    },
+    {
+      "seed": 85,
+      "status": "AC",
+      "score": 3253,
+      "seconds": 1.9989686869084835
+    },
+    {
+      "seed": 86,
+      "status": "AC",
+      "score": 3614,
+      "seconds": 1.9733170391991735
+    },
+    {
+      "seed": 87,
+      "status": "AC",
+      "score": 3905,
+      "seconds": 1.9849406220018864
+    },
+    {
+      "seed": 88,
+      "status": "AC",
+      "score": 4066,
+      "seconds": 1.9844716549851
+    },
+    {
+      "seed": 89,
+      "status": "AC",
+      "score": 3746,
+      "seconds": 1.9763728328980505
+    },
+    {
+      "seed": 90,
+      "status": "AC",
+      "score": 3718,
+      "seconds": 1.98301599198021
+    },
+    {
+      "seed": 91,
+      "status": "AC",
+      "score": 4352,
+      "seconds": 1.9727681369986385
+    },
+    {
+      "seed": 92,
+      "status": "AC",
+      "score": 3530,
+      "seconds": 1.9971488220617175
+    },
+    {
+      "seed": 93,
+      "status": "AC",
+      "score": 2726,
+      "seconds": 1.998017543926835
+    },
+    {
+      "seed": 94,
+      "status": "AC",
+      "score": 3620,
+      "seconds": 2.007490400923416
+    },
+    {
+      "seed": 95,
+      "status": "AC",
+      "score": 4181,
+      "seconds": 2.0026245859917253
+    },
+    {
+      "seed": 96,
+      "status": "AC",
+      "score": 4436,
+      "seconds": 2.0065240720286965
+    },
+    {
+      "seed": 97,
+      "status": "AC",
+      "score": 4128,
+      "seconds": 1.9942055640276521
+    },
+    {
+      "seed": 98,
+      "status": "AC",
+      "score": 4109,
+      "seconds": 1.989031424978748
+    },
+    {
+      "seed": 99,
+      "status": "AC",
+      "score": 3637,
+      "seconds": 1.9969913691747934
+    },
+    {
+      "seed": 100,
+      "status": "RE",
+      "score": null,
+      "returncode": -8,
+      "seconds": 1.9583483419846743,
+      "message": "candidate exited with return code -8"
+    },
+    {
+      "seed": 101,
+      "status": "AC",
+      "score": 3351,
+      "seconds": 2.026677053887397
+    },
+    {
+      "seed": 102,
+      "status": "AC",
+      "score": 3205,
+      "seconds": 1.9945187959820032
+    },
+    {
+      "seed": 103,
+      "status": "AC",
+      "score": 3115,
+      "seconds": 1.985191352898255
+    },
+    {
+      "seed": 104,
+      "status": "RE",
+      "score": null,
+      "returncode": -8,
+      "seconds": 1.9461735968943685,
+      "message": "candidate exited with return code -8"
+    },
+    {
+      "seed": 105,
+      "status": "AC",
+      "score": 3844,
+      "seconds": 2.012854777975008
+    },
+    {
+      "seed": 106,
+      "status": "AC",
+      "score": 4371,
+      "seconds": 1.9900053520686924
+    },
+    {
+      "seed": 107,
+      "status": "AC",
+      "score": 3671,
+      "seconds": 1.9832261139526963
+    },
+    {
+      "seed": 108,
+      "status": "AC",
+      "score": 3440,
+      "seconds": 1.9960402089636773
+    },
+    {
+      "seed": 109,
+      "status": "AC",
+      "score": 3327,
+      "seconds": 1.98758166981861
+    },
+    {
+      "seed": 110,
+      "status": "AC",
+      "score": 3922,
+      "seconds": 1.9886219520121813
+    },
+    {
+      "seed": 111,
+      "status": "AC",
+      "score": 3294,
+      "seconds": 1.985587022965774
+    },
+    {
+      "seed": 112,
+      "status": "AC",
+      "score": 3683,
+      "seconds": 1.996019451878965
+    },
+    {
+      "seed": 113,
+      "status": "AC",
+      "score": 3080,
+      "seconds": 2.021890991134569
+    },
+    {
+      "seed": 114,
+      "status": "AC",
+      "score": 3775,
+      "seconds": 2.018379915971309
+    },
+    {
+      "seed": 115,
+      "status": "AC",
+      "score": 4353,
+      "seconds": 1.9792848660144955
+    },
+    {
+      "seed": 116,
+      "status": "AC",
+      "score": 3497,
+      "seconds": 1.9922025969717652
+    },
+    {
+      "seed": 117,
+      "status": "AC",
+      "score": 3975,
+      "seconds": 2.0189207289367914
+    },
+    {
+      "seed": 118,
+      "status": "AC",
+      "score": 3808,
+      "seconds": 2.000547575065866
+    },
+    {
+      "seed": 119,
+      "status": "AC",
+      "score": 4266,
+      "seconds": 1.9977196641266346
+    },
+    {
+      "seed": 120,
+      "status": "AC",
+      "score": 3843,
+      "seconds": 1.9945130739361048
+    },
+    {
+      "seed": 121,
+      "status": "AC",
+      "score": 4042,
+      "seconds": 2.00426490791142
+    },
+    {
+      "seed": 122,
+      "status": "AC",
+      "score": 3586,
+      "seconds": 2.0030284540262073
+    },
+    {
+      "seed": 123,
+      "status": "AC",
+      "score": 4125,
+      "seconds": 1.996606529923156
+    },
+    {
+      "seed": 124,
+      "status": "AC",
+      "score": 4151,
+      "seconds": 2.0082406671717763
+    },
+    {
+      "seed": 125,
+      "status": "AC",
+      "score": 4059,
+      "seconds": 2.004387852968648
+    },
+    {
+      "seed": 126,
+      "status": "AC",
+      "score": 3512,
+      "seconds": 1.9983933689072728
+    },
+    {
+      "seed": 127,
+      "status": "AC",
+      "score": 3734,
+      "seconds": 1.9961406160145998
+    },
+    {
+      "seed": 128,
+      "status": "AC",
+      "score": 3287,
+      "seconds": 1.9772722600027919
+    },
+    {
+      "seed": 129,
+      "status": "AC",
+      "score": 3704,
+      "seconds": 1.9947491970378906
+    },
+    {
+      "seed": 130,
+      "status": "AC",
+      "score": 4258,
+      "seconds": 1.9889424729626626
+    },
+    {
+      "seed": 131,
+      "status": "AC",
+      "score": 4066,
+      "seconds": 1.9868551008403301
+    },
+    {
+      "seed": 132,
+      "status": "RE",
+      "score": null,
+      "returncode": -8,
+      "seconds": 1.9480665100272745,
+      "message": "candidate exited with return code -8"
+    },
+    {
+      "seed": 133,
+      "status": "AC",
+      "score": 3749,
+      "seconds": 1.9945143410004675
+    },
+    {
+      "seed": 134,
+      "status": "AC",
+      "score": 3869,
+      "seconds": 1.9937024069949985
+    },
+    {
+      "seed": 135,
+      "status": "AC",
+      "score": 3618,
+      "seconds": 1.9989895920734853
+    },
+    {
+      "seed": 136,
+      "status": "AC",
+      "score": 3854,
+      "seconds": 1.9938939919229597
+    },
+    {
+      "seed": 137,
+      "status": "AC",
+      "score": 3261,
+      "seconds": 2.0052201088983566
+    },
+    {
+      "seed": 138,
+      "status": "AC",
+      "score": 3828,
+      "seconds": 1.9960380080156028
+    },
+    {
+      "seed": 139,
+      "status": "AC",
+      "score": 3861,
+      "seconds": 2.001864549005404
+    },
+    {
+      "seed": 140,
+      "status": "AC",
+      "score": 3530,
+      "seconds": 1.9971893690526485
+    },
+    {
+      "seed": 141,
+      "status": "AC",
+      "score": 4084,
+      "seconds": 1.9983848531264812
+    },
+    {
+      "seed": 142,
+      "status": "AC",
+      "score": 3514,
+      "seconds": 1.9892471740022302
+    },
+    {
+      "seed": 143,
+      "status": "AC",
+      "score": 3027,
+      "seconds": 1.9780562510713935
+    },
+    {
+      "seed": 144,
+      "status": "AC",
+      "score": 3674,
+      "seconds": 2.018309592967853
+    },
+    {
+      "seed": 145,
+      "status": "AC",
+      "score": 3577,
+      "seconds": 2.0094185408670455
+    },
+    {
+      "seed": 146,
+      "status": "AC",
+      "score": 4268,
+      "seconds": 2.0004788720980287
+    },
+    {
+      "seed": 147,
+      "status": "AC",
+      "score": 3313,
+      "seconds": 1.986137414118275
+    },
+    {
+      "seed": 148,
+      "status": "AC",
+      "score": 3160,
+      "seconds": 2.000046302098781
+    },
+    {
+      "seed": 149,
+      "status": "AC",
+      "score": 3806,
+      "seconds": 1.9818625070620328
+    }
+  ]
+}

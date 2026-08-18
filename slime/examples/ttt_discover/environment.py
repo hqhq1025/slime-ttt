@@ -40,8 +40,16 @@ class RewardResult:
 
 
 def extract_last_code_block(text: str, language: str = "python") -> str | None:
-    """Return the contents of the last ```<language> ... ``` block, or None."""
-    pattern = re.compile(rf"```{re.escape(language)}\s*\n(.*?)```", re.DOTALL)
+    """Return the last code block, accepting an EOF-truncated closing fence.
+
+    The official TTT-Discover parser intentionally accepts a code block that
+    reaches the end of the response. Long reasoning rollouts frequently hit the
+    generation limit after producing useful code but before the final fence.
+    """
+    pattern = re.compile(
+        rf"```{re.escape(language)}\s*\n(.*?)(?:\n```|```)?(?=\n```|$)",
+        re.DOTALL,
+    )
     matches = pattern.findall(text)
     if not matches:
         return None

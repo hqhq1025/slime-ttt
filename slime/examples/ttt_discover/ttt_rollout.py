@@ -76,6 +76,8 @@ class TTTController:
         )
         self.best_dir = os.path.join(args.save or "./", "ttt_best")
         os.makedirs(self.best_dir, exist_ok=True)
+        self.rollout_dir = os.path.join(args.save or "./", "ttt_rollouts")
+        os.makedirs(self.rollout_dir, exist_ok=True)
         self._eval_pool = ThreadPoolExecutor(max_workers=max(1, args.ttt_eval_concurrency))
         self._sample_index = 0
         self._gen_state = GenerateState(args)  # tokenizer + sampling params + semaphore
@@ -104,6 +106,23 @@ class TTTController:
         self._sample_index += 1
         return s
 
+    def phase2_prefill(self, sample: Sample) -> str:
+        """Return the model-family transition used to force a final answer."""
+        configured = getattr(self.args, "ttt_phase2_prefill", None)
+        if configured is not None:
+            return configured
+        model_name = str(getattr(self.args, "hf_checkpoint", "")).lower()
+        if "gpt-oss" in model_name:
+            if "<|channel|>final<|message|>" in sample.response:
+                return ""
+            suffix = "<|start|>assistant<|channel|>final<|message|>"
+            if not sample.response.endswith("<|end|>"):
+                suffix = "<|end|>" + suffix
+            return "\n\n... okay, I am out of thinking tokens. I need to send my final message now." + suffix
+        if "</think>" not in sample.response:
+            return "\n</think>\n\n"
+        return "\n\n"
+
     # ---- best-so-far logging ------------------------------------------
     def dump_best(self, rollout_id: int) -> dict:
         best = self.archive.best_state()
@@ -119,6 +138,29 @@ class TTTController:
         with open(os.path.join(self.best_dir, "best.json"), "w") as f:
             json.dump(payload, f, indent=2)
         return {"ttt/best_raw_score": float(raw)}
+
+    def dump_candidates(self, rollout_id: int, groups: list[list[Sample]]) -> None:
+        """Persist responses and evaluator diagnostics for reproducibility."""
+        payload = []
+        for gi, group in enumerate(groups):
+            for sample in group:
+                payload.append(
+                    {
+                        "group_index": gi,
+                        "sample_index": sample.index,
+                        "status": sample.status.value,
+                        "response_length": sample.response_length,
+                        "effective_response_length": sample.effective_response_length,
+                        "reward": sample.reward,
+                        "response": sample.response,
+                        "metadata": sample.metadata or {},
+                    }
+                )
+        path = os.path.join(self.rollout_dir, f"rollout_{rollout_id:06d}.json")
+        tmp = path + f".tmp.{os.getpid()}"
+        with open(tmp, "w") as f:
+            json.dump(payload, f, indent=2)
+        os.replace(tmp, path)
 
 
 def _get_controller(args) -> TTTController:
@@ -156,7 +198,61 @@ async def _generate_rollout_async(args, rollout_id: int) -> RolloutFnTrainOutput
 
     async def _gen(sample: Sample):
         async with sem:
-            return await generate(args, sample, sampling_params.copy())
+            params = sampling_params.copy()
+            max_response = int(params["max_new_tokens"])
+            phase1_context = int(getattr(args, "ttt_phase1_max_context", 0))
+            if phase1_context <= 0:
+                return await generate(args, sample, params)
+
+            tok = ctrl._gen_state.tokenizer
+            prompt_ids = tok.encode(sample.prompt, add_special_tokens=False)
+            phase1_max = min(max_response, phase1_context - len(prompt_ids))
+            if phase1_max <= 0:
+                raise ValueError(
+                    f"prompt length {len(prompt_ids)} exceeds --ttt-phase1-max-context "
+                    f"{phase1_context}"
+                )
+            params["max_new_tokens"] = phase1_max
+            sample = await generate(args, sample, params)
+            if sample.status != Sample.Status.TRUNCATED or phase1_max >= max_response:
+                return sample
+
+            # The first phase exhausted its budget. Insert a zero-loss transition
+            # (gpt-oss final-channel marker or Qwen </think>) and continue from the
+            # exact token prefix, matching the official two-phase completer.
+            prefill = ctrl.phase2_prefill(sample)
+            prefill_ids = tok.encode(prefill, add_special_tokens=False) if prefill else []
+            phase1_len = sample.response_length
+            sample.metadata = {
+                **(sample.metadata or {}),
+                "ttt_two_phase": True,
+                "ttt_phase1_response_length": phase1_len,
+            }
+            sample.tokens.extend(prefill_ids)
+            sample.response += prefill
+            sample.response_length += len(prefill_ids)
+            if sample.rollout_log_probs is None:
+                sample.rollout_log_probs = []
+            sample.rollout_log_probs.extend([0.0] * len(prefill_ids))
+
+            remaining_response = max_response - sample.response_length
+            remaining_context = (
+                int(getattr(args, "ttt_context_window", 32768))
+                - len(sample.tokens)
+                - int(getattr(args, "ttt_context_buffer", 50))
+            )
+            phase2_max = min(remaining_response, remaining_context)
+            if phase2_max <= 0:
+                sample.loss_mask = [1] * phase1_len + [0] * len(prefill_ids)
+                return sample
+
+            sample.status = Sample.Status.PENDING
+            phase2_params = sampling_params.copy()
+            phase2_params["max_new_tokens"] = phase2_max
+            sample = await generate(args, sample, phase2_params)
+            phase2_len = sample.response_length - phase1_len - len(prefill_ids)
+            sample.loss_mask = [1] * phase1_len + [0] * len(prefill_ids) + [1] * phase2_len
+            return sample
 
     flat = list(await asyncio.gather(*[_gen(s) for s in flat]))
 
@@ -184,6 +280,7 @@ async def _generate_rollout_async(args, rollout_id: int) -> RolloutFnTrainOutput
         for sample in group:
             score_tasks.append(_score(sample, parent))
     results = list(await asyncio.gather(*score_tasks))
+    ctrl.dump_candidates(rollout_id, regrouped)
 
     # 5) expand the archive with valid children (best-per-parent handled inside)
     children, child_parents = [], []
@@ -196,7 +293,28 @@ async def _generate_rollout_async(args, rollout_id: int) -> RolloutFnTrainOutput
                 code = env.extract_code(sample.response) or ""
                 children.append(env.make_child_state(rollout_id, code, result))
                 child_parents.append(parent)
-    n_added = ctrl.archive.update(children, child_parents, step=rollout_id)
+    n_added = ctrl.archive.update(
+        children,
+        child_parents,
+        step=rollout_id,
+        attempted_parents=group_parent,
+    )
+
+    # The official implementation removes constant-reward groups before
+    # training. Keep their samples in the slime batch for scheduler shape
+    # invariants, but zero their loss masks. If every group is constant, retain
+    # the first one, matching the official fallback to a singleton group.
+    varying = []
+    for group in regrouped:
+        group_rewards = [float(s.reward) for s in group]
+        varying.append(any(r != group_rewards[0] for r in group_rewards[1:]))
+    keep_constant_index = None if any(varying) else (0 if regrouped else None)
+    num_masked_groups = 0
+    for gi, (group, is_varying) in enumerate(zip(regrouped, varying, strict=True)):
+        if not is_varying and gi != keep_constant_index:
+            num_masked_groups += 1
+            for sample in group:
+                sample.remove_sample = True
 
     # 6) metrics
     rewards = [s.reward for s in flat]
@@ -209,6 +327,7 @@ async def _generate_rollout_async(args, rollout_id: int) -> RolloutFnTrainOutput
         "ttt/raw_score_max": max(raw_scores) if raw_scores else 0.0,
         "ttt/children_added": n_added,
         "ttt/num_parents": len(parents),
+        "ttt/constant_groups_masked": num_masked_groups,
     }
     metrics.update(ctrl.archive.stats())
     metrics.update(ctrl.dump_best(rollout_id))

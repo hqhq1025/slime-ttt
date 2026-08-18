@@ -1,0 +1,55 @@
+{
+  "task": "AHC039 released solver public replay",
+  "scope": "officially generated public seeds 17..132 with official tester",
+  "disclaimer": "Not equivalent to the AtCoder hidden-test score reported in the paper.",
+  "source": "/data/haoqing/ttt-discover-official/results/algorithm-design/ahc039.cpp",
+  "source_patch": null,
+  "tester": "/data/haoqing/ahc-cache-download/extracted/cache/tester_binaries/ahc039_tester",
+  "workers": 1,
+  "host_logical_cpus": 128,
+  "num_cases": 5,
+  "accepted": 5,
+  "status_counts": {
+    "AC": 5
+  },
+  "aggregate_score": 17882,
+  "mean_score": 3576.4,
+  "median_score": 3565,
+  "min_score": 3100,
+  "max_score": 4074,
+  "compile_seconds": 3.5103887510485947,
+  "wall_seconds": 13.516442771069705,
+  "sum_case_seconds": 9.989164457889274,
+  "cases": [
+    {
+      "seed": 17,
+      "status": "AC",
+      "score": 4074,
+      "seconds": 1.9934506060089916
+    },
+    {
+      "seed": 18,
+      "status": "AC",
+      "score": 3943,
+      "seconds": 2.007546932902187
+    },
+    {
+      "seed": 100,
+      "status": "AC",
+      "score": 3565,
+      "seconds": 1.998491442995146
+    },
+    {
+      "seed": 104,
+      "status": "AC",
+      "score": 3200,
+      "seconds": 1.9892272190190852
+    },
+    {
+      "seed": 132,
+      "status": "AC",
+      "score": 3100,
+      "seconds": 2.000448256963864
+    }
+  ]
+}

@@ -30,6 +30,25 @@ import numpy as np
 from .state import State
 
 
+def _stable_hashable(obj):
+    """Recursively canonicalize container values into a stable hashable key."""
+    if isinstance(obj, dict):
+        items = [(_stable_hashable(k), _stable_hashable(v)) for k, v in obj.items()]
+        return ("__dict__", tuple(sorted(items, key=repr)))
+    if isinstance(obj, list):
+        return ("__list__", tuple(_stable_hashable(v) for v in obj))
+    if isinstance(obj, tuple):
+        return tuple(_stable_hashable(v) for v in obj)
+    if isinstance(obj, (set, frozenset)):
+        values = [_stable_hashable(v) for v in obj]
+        return ("__set__", tuple(sorted(values, key=repr)))
+    try:
+        hash(obj)
+        return obj
+    except TypeError:
+        return ("__repr__", repr(obj))
+
+
 class DiscoveryArchive:
     def __init__(
         self,
@@ -105,9 +124,17 @@ class DiscoveryArchive:
     def _construction_key(self, s: State):
         if s.construction is not None:
             try:
-                return tuple(np.asarray(s.construction).reshape(-1).tolist())
+                construction = tuple(np.asarray(s.construction).reshape(-1).tolist())
+                # Some official domains (notably circle packing) intentionally
+                # carry an empty construction and condition on the program
+                # itself.  Treating every empty construction as the same key
+                # discards all valid children from those domains.
+                if construction:
+                    return _stable_hashable(construction)
             except Exception:
-                return str(s.construction)
+                construction = str(s.construction)
+                if construction:
+                    return construction
         return s.code or None
 
     def _lineage(self, s: State, children_map: dict[str, set[str]]) -> set[str]:
@@ -183,10 +210,22 @@ class DiscoveryArchive:
             return picked
 
     # ---- update (expansion) -------------------------------------------
-    def update(self, children: Sequence[State], parents: Sequence[State], step: int | None = None) -> int:
-        """Add newly discovered valid children, keeping top-k per parent."""
+    def update(
+        self,
+        children: Sequence[State],
+        parents: Sequence[State],
+        step: int | None = None,
+        *,
+        attempted_parents: Sequence[State] | None = None,
+    ) -> int:
+        """Record expansions and add valid children, keeping top-k per parent.
+
+        ``attempted_parents`` contains one entry per generated group, including
+        groups with no valid child. PUCT visits must advance for failed
+        expansions as required by Algorithm 1 / Appendix A.2 of the paper.
+        """
         with self._lock:
-            # PUCT bookkeeping over all attempts.
+            # Best reachable reward is updated only when a valid child exists.
             parent_max: dict[str, float] = {}
             parent_obj: dict[str, State] = {}
             for child, parent in zip(children, parents):
@@ -196,7 +235,12 @@ class DiscoveryArchive:
                 parent_obj[parent.id] = parent
             for pid, y in parent_max.items():
                 self._m[pid] = max(self._m.get(pid, y), y)
-                anc = [pid] + [str(p["id"]) for p in (parent_obj[pid].parents or []) if p.get("id")]
+
+            # Visits count every expanded group, even if all candidates failed.
+            expanded = list(attempted_parents) if attempted_parents is not None else list(parent_obj.values())
+            for parent in expanded:
+                pid = parent.id
+                anc = [pid] + [str(p["id"]) for p in (parent.parents or []) if p.get("id")]
                 for aid in anc:
                     self._n[aid] = self._n.get(aid, 0) + 1
                 self._T += 1

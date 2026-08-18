@@ -1,131 +1,172 @@
-# slime-ttt on Hyak — full-parameter TTT-Discover for gpt-oss-20B / Frontier-CS
+# slime-ttt
 
-Everything for this project lives under **`/gscratch/zlab/lky04/slime-ttt`** (the
-container, caches, model, problem data, checkpoints, logs). Nothing is written to
-`$HOME` or outside this folder. The container is run with `--no-home` and all
-caches (HF/XDG/triton/inductor/torch) are redirected here.
+Portable, locally runnable reproduction of **TTT-Discover / Learning to
+Discover at Test Time** on top of [slime](https://github.com/THUDM/slime),
+Megatron, and SGLang.
 
-This deploys the TTT-Discover algorithm ("Learning to Discover at Test Time",
-arXiv:2601.16175) on **slime** with **full-parameter** Megatron training (not the
-paper's LoRA/Tinker) — the entropic discovery objective + a per-problem
-discovery loop — applied to **Frontier-CS** competitive-programming problems with
-**gpt-oss-20B**, on one node of 4×H200 (g3125).
+The repository implements the core discovery algorithm and task environments
+without requiring Tinker. It supports all five domains from the paper:
 
-## Directory layout
-```
-slime-ttt/
-├── apptainer/images/slime.sif     # container (copied from socialrl; torch2.9/sglang/megatron)
-├── slime/                         # modified slime v0.3.0 + examples/ttt_discover plugin
-│   └── examples/ttt_discover/     # entropic estimator (core) + discovery loop + FrontierCS env
-├── frontiercs/                    # Frontier-CS problems + judge/testlib (copied here)
-│   ├── problems/<id>/             # statement.txt, config.yaml, testdata/, chk.cc
-│   └── judge/, testlib.h
-├── models/
-│   ├── gpt-oss-20b/               # HF download (MXFP4)
-│   ├── gpt-oss-20b-bf16/          # dequantized bf16 (for SGLang + conversion)  [prep]
-│   └── gpt-oss-20b_torch_dist/    # Megatron torch_dist (train init / ref)       [prep]
-├── cache/, hf_cache/              # all caches redirected here (never $HOME)
-├── ckpts/                         # slime --load/--save
-├── logs/                          # prepare + training logs
-├── scripts/
-│   ├── prepare_gptoss.sh          # download + bf16 + torch_dist (run on g3125)
-│   ├── run-ttt-frontiercs-gptoss20b.sh   # << launch training (outer)
-│   └── train_inner.sh            # the in-container command (edit hyperparams here)
-└── README.md
-```
+- mathematical discovery: Erdős minimum overlap, AC1, AC2, circle packing 26/32;
+- GPU kernel engineering: TriMul and MLA Decode hardware adaptations;
+- algorithm engineering: AHC039 and AHC058;
+- biological discovery: single-cell RNA-seq denoising.
 
-## How to run (after model prep finishes)
-On the compute node (g3125):
+> The original paper trains LoRA adapters through Tinker. This port uses slime
+> full-parameter training. The discovery loop, PUCT archive, adaptive-entropic
+> objective, token-level KL shaping, importance ratios, and two-phase generation
+> are aligned with the released implementation; the training backend differs.
+
+## Reproduction status
+
+The local campaign used Qwen3-4B on **8×A100 80GB**, plus 128 CPU cores and
+755GB RAM. Headline results:
+
+| Domain | Task | Local result | Status |
+|---|---|---:|---|
+| Math | Erdős minimum overlap | 0.381659 | 10 steps, 1,280 rollouts |
+| Math | AC1 | 1.691701 | 5 steps, 640 rollouts |
+| Math | AC2 | 0.796296 | 5 steps, 640 rollouts |
+| Math | Circle packing 26 | 2.438966 | 5 steps, 640 rollouts |
+| Math | Circle packing 32 | 2.666667 | 5 steps, 640 rollouts |
+| GPU | TriMul A100 | 8/24 valid; seed 903.62 μs | end-to-end training |
+| GPU | MLA Decode A100 | 4/4 valid; seed 539.462 μs | end-to-end smoke |
+| AHC | AHC039 public replay | 145/150 AC | released artifact |
+| AHC | AHC058 public replay | 150/150 AC | released artifact |
+| Biology | Pancreas TTT | 4/4 valid, archive 1→3 | training update saved |
+| Biology | PBMC held-out | 0.708497 | paper reports 0.71 |
+| Biology | Tabula held-out | 0.734980 | paper reports 0.73 |
+
+See [the complete reproduction table](docs/TTT_REPRODUCTION_RESULTS.md) for
+budgets, evidence paths, official values, and exact comparability notes.
+
+The A100 kernel measurements are hardware adaptations, not substitutes for the
+paper's H100/H200/MI300X scores. Public AHC inputs are not the hidden AtCoder
+evaluation set.
+
+## How it works
+
+At each test-time training step:
+
+1. sample parent solutions from a persistent PUCT archive;
+2. prompt the model with the problem and best-so-far solution;
+3. generate a group of candidates with SGLang;
+4. execute the official or ported task verifier;
+5. update the archive and compute adaptive-entropic advantages;
+6. apply the token-level KL-shaped policy update in Megatron;
+7. synchronize weights and continue discovery.
+
+Important alignment details are documented in
+[TTT_PAPER_ALIGNMENT_AUDIT.md](docs/TTT_PAPER_ALIGNMENT_AUDIT.md).
+
+## Quick start
+
+Clone this repository and the official released reference as siblings:
+
 ```bash
-cd /gscratch/zlab/lky04/slime-ttt
-# local judge (smoke, compile+run public test):
-PROBLEM_ID=0 JUDGE_BACKEND=local bash scripts/run-ttt-frontiercs-gptoss20b.sh
-# remote judge (real scoring) — once you give me the endpoint:
-PROBLEM_ID=0 JUDGE_BACKEND=remote JUDGE_URL=http://<host>/score bash scripts/run-ttt-frontiercs-gptoss20b.sh
+git clone https://github.com/hqhq1025/slime-ttt.git
+git clone https://github.com/test-time-training/discover.git ttt-discover-official
+cd slime-ttt
 ```
-Tune training in `scripts/train_inner.sh` (group sizes, steps, parallelism, LR).
 
-## What the loop does
-Per step: sample parent solution(s) from a discovery archive → build a prompt
-conditioned on the best-so-far C++ solution → generate a group of candidates via
-SGLang → score each via the judge → entropic-advantage update (full-parameter) →
-sync weights → repeat. Reward = judge points (normalized to [0,1]); the entropic
-estimator concentrates the gradient on the best-in-group candidates.
+Choose a large persistent storage directory. Models, datasets, checkpoints,
+logs, and caches are deliberately excluded from Git:
 
-## >>> JUDGE: the one thing left to finalize <<<
-The reward backend is `examples/ttt_discover/frontiercs_judge.py`:
-- `local`  : compiles + runs the **public** testdata + testlib checker (smoke only,
-  binary-ish). Works now.
-- `remote` : POSTs the candidate to your judge server. **Current assumed contract**
-  (please confirm / correct):
-      POST {JUDGE_URL}
-      request : {"problem_id": str, "language": "cpp", "code": str}
-      response: {"score": float, "max_score": float, "status": str}
-  Once you describe the real protocol/URL I will update `remote_judge()` and the
-  `--ttt-judge-*` args, then switch the run to `JUDGE_BACKEND=remote`.
+```bash
+export TTT_ROOT="$PWD"
+export TTT_STORAGE_ROOT=/path/to/large/storage/ttt-storage
+export TTT_OFFICIAL_ROOT="$(dirname "$PWD")/ttt-discover-official"
 
-## Open questions for you
-1. Remote judge: URL, request/response schema, auth/token? (see above)
-2. Which Frontier-CS problem id(s)? (TTT is single-problem; default PROBLEM_ID=0)
-3. Reward shaping ok? (reward = judge_score / max_score in [0,1])
-4. Scale: currently rollout-batch-size 4 × n-samples 8 = 32 rollouts/step, 50 steps.
-   Paper uses up to 64/group; we can scale once the first run is stable.
+# Point these at the runtime installed on the target machine.
+export TTT_VENV=/path/to/python-venv
+export CUDA_HOME=/usr/local/cuda
+export MEGATRON_PATH=/path/to/Megatron-LM
+export SGLANG_SOURCE=/path/to/sglang/python
 
-## Setup status (verified)
-- [x] Container reused (slime.sif) — my slime v0.3.0 + TTT plugin import cleanly inside it
-- [x] Entropic-advantage unit tests pass inside the container
-- [x] FrontierCS env smoke-tested (compile/run/checker path works)
-- [x] Frontier-CS problem data copied into zlab
-- [~] gpt-oss-20B prep running (download done; bf16 + torch_dist converting) — see logs/prepare_gptoss.log
-- [ ] First full-parameter training launch (pending checkpoint; parallelism/memory may need tuning)
-- [ ] Remote judge wired (pending your protocol)
+source local/env.sh
+python -m pip install -e slime --no-deps
+```
 
-## Notes
-- All compute runs on g3125 inside slime.sif. Caches are bound into zlab; `--no-home`.
-- gpt-oss MoE on 4×H200: expert-parallel=4. If you hit OOM, lower
-  --max-tokens-per-gpu or n-samples-per-prompt, or add pipeline parallel in train_inner.sh.
+Prepare Qwen3-4B and run the smallest end-to-end job:
 
-## Update (setup complete)
-- [x] gpt-oss-20B fully prepared: models/gpt-oss-20b (HF), gpt-oss-20b-bf16 (8 shards),
-      gpt-oss-20b_torch_dist (Megatron dist ckpt: release/ + 8 .distcp + common.pt).
-- [x] Full training command arg-parse validated inside the container (entry point
-      train_ttt.py + all --ttt-* args + --advantage-estimator entropic_adaptive_beta).
-- READY TO LAUNCH. Remaining before a real run: (1) your remote-judge protocol so
-  reward is meaningful, (2) decide PROBLEM_ID + scale. A local-judge smoke run can be
-  started any time with: PROBLEM_ID=0 JUDGE_BACKEND=local bash scripts/run-ttt-frontiercs-gptoss20b.sh
-  (first GPU launch may need parallelism/mem tuning in scripts/train_inner.sh — EP=4,
-  --max-tokens-per-gpu, --sglang-mem-fraction-static).
+```bash
+bash local/prepare_qwen3_4b.sh
+bash local/run_ttt_erdos_smoke.sh
+```
 
-## Update 2 (judge WIRED + verified)
-Remote judge protocol discovered & implemented in examples/ttt_discover/frontiercs_judge.py:
-  POST https://yanagiorigami.uk/submit  {"pid": str, "lang": "cpp", "code": str}  -> {"sid": int}
-  GET  https://yanagiorigami.uk/result/{sid}  -> {"status":"done","passed":bool,
-       "result":str,"score":float,"scoreUnbounded":float,"cases":[...]}
-  (must send a browser User-Agent; Cloudflare 403s python-urllib default.)
-Verified from inside the container: a trivial solution to problem 0 -> "Wrong Answer", score 0, correctness 1.
-Run scripts now default to JUDGE_BACKEND=remote, JUDGE_URL=https://yanagiorigami.uk.
-Reward = judge "score"/100 (switch to raw with --ttt-judge-score-key scoreUnbounded for optimization problems).
+More launchers:
 
-## WORKING CONFIG (4x16 full loop verified 2026-06-15)
-gpt-oss-20B, Frontier-CS, 16xH200 (4 nodes). Full TTT loop runs: rollout(64x26k + remote judge) -> entropic adv -> full-param Megatron update -> weight sync -> next rollout. best_raw improved 27.8 -> 46.3 over 1 step.
-Critical multi-node/gpt-oss fixes (in scripts/_train_job.sh + ray_env.sh):
-- --num-gpus-per-node 4   (default 8; must match physical GPUs/node or SGLang engines span nodes -> TCPStore timeout)
-- NCCL_SOCKET_IFNAME=GLOO_SOCKET_IFNAME=ens11f0np0  (fabric NIC for cross-node)
-- --rollout-num-gpus-per-engine 1  (one gpt-oss engine per card)
-- ray start --memory/--object-store-memory caps (respect 512G/node SLURM grant)
-- --load only if a real checkpoint exists (else init from --ref-load)
-- --attention-backend fused + --qkv-format bshd + NO --use-dynamic-batch-size
-  (gpt-oss learnable softmax/sinks: flash unsupported; cuDNN fused needs bshd not thd)
-Note: bshd pads to batch-max seq (compute waste on short samples); fine given big GPU headroom (~48/140GB used).
+```bash
+bash local/run_ttt_ac1_smoke.sh
+bash local/run_ttt_domain_scale.sh ac2
+bash local/run_ttt_domain_scale.sh circle26
+bash local/run_ttt_trimul_a100_smoke.sh
+bash local/run_ttt_mla_decode_a100_smoke.sh
+bash local/run_ttt_denoising_smoke.sh
+```
 
-## FINAL STABLE CONFIG (verified continuous, 2026-06-15)
-4x16 (rollout-batch-size 4 x n-samples 16), 26k token limit, gpt-oss-20B, 16xH200.
-Ran 10+ steps continuously, best_raw 45.7 -> 76.6 (rising), archive 12 -> 122. Checkpoints every 5 steps.
-Parallelism: TP=4, PP=1, CP=1, EP=4, ETP=1 (world=16, DP=4).
-gpt-oss attention constraints (TE 2.10/cuDNN 9.16) due to learnable softmax (attention sinks):
-  - learnable + thd            -> NO backend  => must use --qkv-format bshd (no --use-dynamic-batch-size)
-  - learnable + context-parallel -> NO backend => CANNOT use CP
-  - learnable + bshd + no CP   -> cuDNN FusedAttention works  (use --attention-backend fused)
-  - expandable_segments allocator BREAKS SGLang TorchMemorySaver => do NOT set it
-  - long-seq (26k) OOM fix = TP=4 (shard per-layer attn/logits), NOT CP, NOT expandable_segments
-GPU mem ~comfortable with TP=4. bshd pads to batch-max seq (compute waste; optional future opt: length bucketing).
+Read the [portable setup and execution runbook](docs/PORTABLE_TTT_RUNBOOK.md)
+before moving to a new cluster. The
+[Apptainer guide](docs/APPTAINER_GUIDE.md) is recommended when system CUDA and
+compiled Python packages differ across machines.
+
+## Repository layout
+
+```text
+slime/examples/ttt_discover/
+├── archive.py                 # PUCT discovery archive
+├── advantage.py               # official KL-shaped token advantages
+├── ttt_rollout.py             # two-phase generation and evaluation loop
+├── envs/                      # math, AHC, GPU, and biology tasks
+├── trimul_eval.py             # local A100 TriMul evaluator
+├── mla_decode_a100_eval.py    # local A100 MLA evaluator
+└── tests/                     # alignment and evaluator contract tests
+
+local/
+├── env.sh                     # portable path/caching configuration
+├── prepare_qwen3_4b.sh
+├── run_ttt_*                  # smoke and scale launchers
+└── evaluate_*                 # released/public artifact evaluators
+
+docs/
+├── PORTABLE_TTT_RUNBOOK.md
+├── TTT_PAPER_ALIGNMENT_AUDIT.md
+└── TTT_REPRODUCTION_RESULTS.md
+```
+
+## Validation
+
+The published branch was checked with:
+
+```bash
+PYTHONPATH="$PWD/slime" "$TTT_VENV/bin/python" -m pytest -s -o addopts='' \
+  slime/examples/ttt_discover/tests
+```
+
+The combined portable suite passes 32 environment/evaluator tests. Shell
+launchers also pass `bash -n`, edited Python files pass `py_compile`, and the
+machine-readable result tables are checked for consistency.
+
+## Scaling beyond the local run
+
+For a faithful gpt-oss-120B campaign matching the paper's 50×512-rollout,
+32K-context setting, plan around **32×H100/H200 80GB for 48 hours**, 128–256
+CPU cores, at least 512GB RAM, fast shared storage, and InfiniBand. An 8×A100
+node is well suited to functional validation and Qwen3-4B experiments, but not
+to reproducing the official 120B training budget.
+
+Legacy Frontier-CS and multi-node Hyak launchers remain under `scripts/` for
+reference. Frontier-CS requires its external problem assets and judge service;
+it is not included in the verified paper-task table.
+
+## Safety
+
+Candidate programs are generated and executed during evaluation. Use isolated
+compute nodes or containers, keep credentials outside the runtime, and do not
+run untrusted candidates on machines containing sensitive data.
+
+## References
+
+- TTT-Discover official release: <https://github.com/test-time-training/discover>
+- slime: <https://github.com/THUDM/slime>
+- Reproduction evidence: [docs/TTT_REPRODUCTION_RESULTS.md](docs/TTT_REPRODUCTION_RESULTS.md)
