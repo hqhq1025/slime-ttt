@@ -14,7 +14,11 @@ RUNS = {
     "circle26": ("qwen3-4b-ttt-circle26-8x16x5", "qwen3-4b-ttt-circle26-lora-r32-8x16x5", 1),
     "circle32": ("qwen3-4b-ttt-circle32-8x16x5", "qwen3-4b-ttt-circle32-lora-r32-8x16x5", 1),
     "trimul": ("qwen3-4b-ttt-trimul-a100-8x8x3", "qwen3-4b-ttt-trimul-a100-lora-r32-8x8x3", -1),
-    "mla": ("qwen3-4b-ttt-mla-a100-full-pair-2step", "qwen3-4b-ttt-mla-a100-lora-r32-pair-2step", -1),
+    "mla": (
+        "qwen3-4b-ttt-mla-a100-full-pair-2step",
+        "qwen3-4b-ttt-mla-a100-lora-r32-pair-2step-graphfix",
+        -1,
+    ),
     "ahc039": ("qwen3-4b-ttt-ahc039-full-pair-2step", "qwen3-4b-ttt-ahc039-lora-r32-pair-2step", 1),
     "ahc058": ("qwen3-4b-ttt-ahc058-full-pair-2step", "qwen3-4b-ttt-ahc058-lora-r32-pair-2step", 1),
     "denoising": ("qwen3-4b-ttt-denoising-full-pair-2step", "qwen3-4b-ttt-denoising-lora-r32-pair-2step", -1),
@@ -23,10 +27,18 @@ RUNS = {
 
 def summarize(path: Path, raw_sign: int) -> dict:
     valid_by_step = []
+    rollout_steps = []
     total = 0
     truncated = 0
     for file in sorted((path / "ttt_rollouts").glob("rollout_*.json")):
-        samples = json.loads(file.read_text())
+        # Shared filesystems can briefly retain a directory entry whose inode
+        # is already gone. Treat it as a missing artifact instead of failing
+        # the complete cross-domain report.
+        try:
+            samples = json.loads(file.read_text())
+        except FileNotFoundError:
+            continue
+        rollout_steps.append(int(file.stem.rsplit("_", 1)[-1]))
         total += len(samples)
         valid_by_step.append(
             sum(float(sample.get("metadata", {}).get("correctness", 0)) == 1 for sample in samples)
@@ -34,9 +46,11 @@ def summarize(path: Path, raw_sign: int) -> dict:
         truncated += sum(sample.get("status") == "truncated" for sample in samples)
 
     best_curve = []
+    archive_steps = []
     archive_sizes = []
     for file in sorted((path / "ttt_archive").glob("archive_step_*.json")):
         archive = json.loads(file.read_text())
+        archive_steps.append(int(file.stem.rsplit("_", 1)[-1]))
         values = [
             state["value"]
             for state in archive.get("states", [])
@@ -52,8 +66,11 @@ def summarize(path: Path, raw_sign: int) -> dict:
         "valid": sum(valid_by_step),
         "valid_rate": sum(valid_by_step) / total if total else None,
         "valid_by_step": valid_by_step,
+        "rollout_steps": rollout_steps,
+        "missing_rollout_steps": sorted(set(archive_steps) - set(rollout_steps)),
         "truncated": truncated,
         "best_curve": best_curve,
+        "archive_steps": archive_steps,
         "final_best": best_curve[-1] if best_curve else None,
         "archive_sizes": archive_sizes,
         "final_archive_size": archive_sizes[-1] if archive_sizes else None,
