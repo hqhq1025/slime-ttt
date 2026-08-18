@@ -41,6 +41,10 @@ AHC_TIME_LIMIT="${TTT_AHC_TIME_LIMIT:-2.0}"
 NUM_GPUS="${NUM_GPUS:-8}"
 RAY_PORT="${RAY_PORT:-6379}"
 DASHBOARD_PORT="${DASHBOARD_PORT:-8265}"
+# The matched 8 groups x 16 candidates run averages 32 sequences per TP=2
+# engine. Two-phase asynchronous generation can transiently skew above 32,
+# so capture through 64 and retain an override for tighter-memory machines.
+SGLANG_CUDA_GRAPH_MAX_BS="${TTT_SGLANG_CUDA_GRAPH_MAX_BS:-64}"
 LORA_RANK="${TTT_LORA_RANK:-0}"
 LORA_ALPHA="${TTT_LORA_ALPHA:-32}"
 LORA_DROPOUT="${TTT_LORA_DROPOUT:-0.0}"
@@ -183,7 +187,7 @@ ray job submit --address="http://127.0.0.1:${DASHBOARD_PORT}" \
   --max-tokens-per-gpu "${MAX_TOKENS_PER_GPU}" \
   --rollout-num-gpus-per-engine 2 \
   --sglang-mem-fraction-static 0.7 \
-  --sglang-cuda-graph-max-bs 16 \
+  --sglang-cuda-graph-max-bs "${SGLANG_CUDA_GRAPH_MAX_BS}" \
   "${EXTRA_SGLANG_ARGS[@]}" \
   --attention-dropout 0.0 \
   --hidden-dropout 0.0 \

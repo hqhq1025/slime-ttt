@@ -23,3 +23,9 @@ def test_base_launcher_keeps_cuda_graph_disable_as_explicit_opt_in():
     text = (REPO_ROOT / "local/run_ttt_erdos_smoke.sh").read_text()
     assert '${TTT_SGLANG_DISABLE_CUDA_GRAPH:-0}' in text
     assert "--sglang-disable-cuda-graph" in text
+
+
+def test_base_launcher_captures_the_scaled_per_engine_decode_batch():
+    text = (REPO_ROOT / "local/run_ttt_erdos_smoke.sh").read_text()
+    assert 'SGLANG_CUDA_GRAPH_MAX_BS="${TTT_SGLANG_CUDA_GRAPH_MAX_BS:-64}"' in text
+    assert '--sglang-cuda-graph-max-bs "${SGLANG_CUDA_GRAPH_MAX_BS}"' in text
