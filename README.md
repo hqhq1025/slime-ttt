@@ -1,5 +1,12 @@
 # slime-ttt on Hyak — full-parameter TTT-Discover for gpt-oss-20B / Frontier-CS
 
+> **Portable A100 reproduction:** this fork now includes the paper-aligned
+> discovery loop plus mathematics, GPU-kernel, AHC, and biology environments.
+> Start with [`docs/PORTABLE_TTT_RUNBOOK.md`](docs/PORTABLE_TTT_RUNBOOK.md) and
+> see [`docs/TTT_REPRODUCTION_RESULTS.md`](docs/TTT_REPRODUCTION_RESULTS.md) for
+> the verified local results. The Hyak/H200 notes below are retained for the
+> original multi-node deployment.
+
 Everything for this project lives under **`/gscratch/zlab/lky04/slime-ttt`** (the
 container, caches, model, problem data, checkpoints, logs). Nothing is written to
 `$HOME` or outside this folder. The container is run with `--no-home` and all

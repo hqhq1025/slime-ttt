@@ -62,7 +62,6 @@ class ErdosMinOverlapEnv(TTTEnvironment):
             n_points = int(rng.integers(40, 100))
             constr = np.ones(n_points) * 0.5 + (rng.uniform(-0.4, 0.4, n_points) - 0.0)
             constr = constr - np.mean(constr) + 0.5  # keep mean ~ 0.5 (∫h ~ 1)
-            constr = np.clip(constr, 0.0, 1.0)
             dx = 2.0 / n_points
             c5 = float(np.max(np.correlate(constr, 1 - constr, mode="full") * dx))
             states.append(State(timestep=-1, code="", construction=constr.tolist(),

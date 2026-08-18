@@ -55,6 +55,8 @@ TTT_ARGS=(
    --ttt-eval-concurrency 32
    --ttt-max-buffer-size 1000
    --ttt-topk-children 2
+   --ttt-phase1-max-context 12288 # reserve response budget for final code
+   --ttt-context-window 32768
 )
 
 ROLLOUT_ARGS=(
@@ -73,20 +75,22 @@ ROLLOUT_ARGS=(
 ALGO_ARGS=(
    --advantage-estimator entropic_adaptive_beta   # << the discovery objective
    --adv-entropic-target-kl 0.6931                # log(2), the paper's default
-   --use-kl-loss                                  # KL-to-base (TTT kl_penalty_coef)
-   --kl-loss-coef 0.001
-   --kl-loss-type low_var_kl
-   --eps-clip 0.2
-   --eps-clip-high 0.28
+   # Official TTT: KL is part of the token advantage, not a separate KL loss.
+   --custom-advantage-function-path examples.ttt_discover.advantage.compute_ttt_advantages
+   --kl-coef 0.1
+   # Official importance-sampling PG uses sampler log-probs without PPO clipping.
+   --use-rollout-logprobs
+   --eps-clip inf
+   --eps-clip-high inf
 )
 
 OPTIMIZER_ARGS=(
    --optimizer adam
    --lr 1e-6                        # full-param LR (paper's 4e-5 was for LoRA)
    --lr-decay-style constant
-   --weight-decay 0.1
+   --weight-decay 0.0
    --adam-beta1 0.9
-   --adam-beta2 0.98
+   --adam-beta2 0.95
 )
 
 PERF_ARGS=(

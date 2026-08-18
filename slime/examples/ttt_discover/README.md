@@ -19,9 +19,10 @@ SGLang stack instead of the paper's Tinker **LoRA** reference implementation.
 | Trainer | Tinker managed service | slime → **Megatron, all weights** |
 | Adaptation | **LoRA** (rank 32) | **Full-parameter** |
 | Sampler | Tinker sampling client | SGLang router (slime) |
-| Loss | importance-sampling PG | slime PPO/GRPO policy loss |
+| Loss | importance-sampling PG | same ratio using `--use-rollout-logprobs`, PPO clipping disabled |
 | Advantage | entropic adaptive-β (LOO) | **same**, added to slime core |
-| KL-to-base | folded into advantage | slime `--use-kl-loss` vs. `--ref-load` |
+| KL-to-base | folded into advantage | **same**, via `advantage.compute_ttt_advantages` |
+| Long reasoning | two-phase forced final answer | same mechanism over SGLang continuation |
 
 The discovery *algorithm* is preserved; only the training backend changes.
 
@@ -33,6 +34,7 @@ examples/ttt_discover/
 ├── train_ttt.py        # entry point (= train.py + registers --ttt-* args)
 ├── ttt_args.py         # --ttt-* CLI arguments
 ├── environment.py      # TTTEnvironment base + RewardResult + code extraction
+├── advantage.py        # official token-level KL-to-base advantage shaping
 ├── envs/erdos.py       # worked example: Erdős minimum-overlap
 ├── archive.py          # PUCT tree-search archive over solutions ("discovery")
 ├── state.py            # a candidate solution + best-so-far prompt conditioning
@@ -65,7 +67,9 @@ python3 examples/ttt_discover/train_ttt.py \
   --rollout-batch-size 8 \                         # groups per step
   --n-samples-per-prompt 16 \                      # group size
   --num-rollout 50 \                               # test-time steps
-  --use-kl-loss --kl-loss-coef 0.001 --ref-load <base-ckpt> \
+  --custom-advantage-function-path examples.ttt_discover.advantage.compute_ttt_advantages \
+  --kl-coef 0.1 --ref-load <base-ckpt> \
+  --use-rollout-logprobs --eps-clip inf --eps-clip-high inf \
   ... # standard slime Megatron/SGLang args
 ```
 
@@ -78,9 +82,11 @@ python3 examples/ttt_discover/train_ttt.py \
 | `num_epochs` (50) | `--num-rollout` |
 | `adv_estimator="entropic_adaptive_beta"` | `--advantage-estimator entropic_adaptive_beta` |
 | target KL `log 2` | `--adv-entropic-target-kl 0.6931` |
-| `kl_penalty_coef` (0.1) | `--use-kl-loss --kl-loss-coef` + `--ref-load` |
+| `kl_penalty_coef` (0.1) | custom TTT advantage + `--kl-coef 0.1 --ref-load` |
+| importance-sampling PG | `--use-rollout-logprobs --eps-clip inf --eps-clip-high inf` |
+| two-phase final forcing | `--ttt-phase1-max-context` + `--ttt-context-window` |
 | single-problem dataset | `--disable-rollout-global-dataset` + custom rollout |
-| `remove_constant_reward_groups` | not needed (entropic zeroes flat groups); or `--dynamic-sampling-filter-path …check_reward_nonzero_std` |
+| `remove_constant_reward_groups` | constant groups receive zero loss masks; first is retained if all are constant |
 
 ## Adding your own problem
 
@@ -127,10 +133,9 @@ python3 examples/ttt_discover/tests/test_entropic_advantage.py   # numpy only, n
 
 - **Security**: generated code is executed. The sandbox blocks filesystem writes
   and enforces a timeout, but you should still run on an isolated machine/VPN.
-- **Two-phase reasoning**: the paper uses a 26k-token reasoning budget for
-  gpt-oss; here generation is single-pass under the model's chat template. For a
-  faithful gpt-oss run, raise `--rollout-max-response-len` and start from
-  `scripts/models/gpt-oss-20B.sh`.
+- **Two-phase reasoning**: `--ttt-phase1-max-context` reserves the remaining
+  response/context budget for final code and inserts the appropriate gpt-oss
+  final-channel marker or Qwen `</think>` transition.
 - **Learning rate**: the paper's `4e-5` was for LoRA; full-parameter runs use a
   much smaller LR (`1e-6`–`5e-7`). Tune per model.
 - **Sandbox scale**: evaluation runs in a thread pool inside the rollout actor.

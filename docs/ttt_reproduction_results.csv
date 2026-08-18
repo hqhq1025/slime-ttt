@@ -1,0 +1,13 @@
+domain,task,direction,official_result,local_result,status,local_model,local_budget,next_requirement
+Mathematics,Erdos minimum overlap,minimize,0.380876,0.3816590078,completed,Qwen3-4B,"8xA100; 10 steps; 1280 rollouts; 51 min","none"
+Mathematics,AC1,minimize,1.50287,1.691700607,completed,Qwen3-4B,"8xA100; 5 steps; 640 rollouts; archive 81","larger model and budget"
+Mathematics,AC2,maximize,0.9591,0.7962962963,completed,Qwen3-4B,"8xA100; 5 steps; 640 rollouts; archive 72","larger model and budget"
+Mathematics,Circle packing n=26,maximize,2.635983,2.4389662674,completed,Qwen3-4B,"8xA100; 5 steps; 640 rollouts; archive 58","larger model and budget"
+Mathematics,Circle packing n=32,maximize,2.939572,2.6666666667,completed,Qwen3-4B,"8xA100; 5 steps; 640 rollouts; archive 71","larger model and budget"
+GPU kernels,TriMul A100,minimize,2198.2,903.62,completed,Qwen3-4B,"8xA100; local warm-start; 3 steps; 24 rollouts; 8 valid; archive 7; 19 min","larger model and budget; H100 for direct comparison"
+GPU kernels,TriMul H100,minimize,1161.2,,blocked,,,"H100 evaluator hardware"
+GPU kernels,MLA Decode A100,minimize,instance-dependent,539.4624115,completed,Qwen3-4B,"8xA100; local warm-start; 1 step; 4 rollouts; 4 valid; archive 3","larger budget; 538.8302147 best child is within timing noise"
+GPU kernels,MLA Decode H200/MI300X,minimize,instance-dependent,,blocked,,,"H200 training and MI300X selection hardware"
+Algorithm engineering,AHC039,maximize,567062,"released public replay: 145/150 AC; AC-only mean 3802.5448; AC-only aggregate 551369; strict aggregate 0",evaluator-completed,Qwen3-4B,"official released C++; public seeds 0-149; official tester; 302.47 s wall; training smoke 1 step/4 rollouts/0 valid","fix or avoid nondeterministic modulo-zero SIGFPE; edit-based action space or larger code model; hidden evaluator"
+Algorithm engineering,AHC058,maximize,848414228,"released public replay: 150/150 AC; mean 5667059.8067; aggregate 850058971",evaluator-completed,Qwen3-4B,"official released C++; public seeds 0-149; official tester; 64 workers; 10.09 s wall; training smoke 1 step/4 rollouts/0 valid","larger code model or edit-based action space; hidden evaluator; public result is not hidden-score comparable"
+Biology,scRNA-seq denoising,maximize,"PBMC 0.71; Tabula 0.73","PBMC 0.7084967999; Tabula 0.7349797471; pancreas released artifact 0.7261869921; local smoke best seed MSE 0.2314119079",smoke-completed,"Qwen3-4B + released TTT artifact","8xA100; 1 step/4 rollouts; 4/4 valid; archive 1-3; grad norm 7.872218; checkpoint saved; exact held-out protocol on CPU","larger local TTT training budget"

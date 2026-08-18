@@ -10,6 +10,16 @@ scripts/wandb_secret.sh
 discover/
 _qwen_stage/
 problem-statement/
+Megatron-Bridge/
+Megatron-LM/
+apex/
+cuda-*/
+downloads/
+flash-attn-src/
+mbridge/
+pip_cache/
+results/
+sglang/
 
 # ---- large data / artifacts (live on the cluster, not in git) ----
 *.sif
@@ -22,8 +32,12 @@ models/
 ckpts/
 checkpoints/
 cache/
+.cache/
 hf_cache/
 logs/
+ray_tmp/
+tmp/
+torch_cache/
 wandb/
 frontiercs/testdata/
 *.tar
@@ -34,4 +48,10 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .ipynb_checkpoints/
+.pytest_cache/
+.venv*/
 .DS_Store
+
+# Ray/pytest can leave short token files at the repository root.
+/????????
+/?????????

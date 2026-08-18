@@ -9,6 +9,23 @@ and *how the discovery archive behaves*.
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
+
+def _official_root() -> str:
+    configured = os.environ.get("TTT_OFFICIAL_ROOT")
+    if configured:
+        return configured
+    return str(Path(__file__).resolve().parents[3].parent / "ttt-discover-official")
+
+
+def _ahc_cache_dir() -> str:
+    configured = os.environ.get("TTT_AHC_CACHE_DIR")
+    if configured:
+        return configured
+    return str(Path(__file__).resolve().parents[3].parent / "ttt-storage/ahc-cache/extracted/cache")
+
 
 def add_ttt_arguments(parser):
     group = parser.add_argument_group("ttt_discover")
@@ -70,6 +87,77 @@ def add_ttt_arguments(parser):
         type=float,
         default=None,
         help="Optional override of the environment's target metric shown in prompts.",
+    )
+    group.add_argument(
+        "--ttt-phase1-max-context",
+        type=int,
+        default=0,
+        help=(
+            "Prompt + phase-1 token budget for two-phase generation. At the limit, "
+            "force the model out of reasoning and reserve the remaining response budget "
+            "for final code. Zero disables two-phase generation."
+        ),
+    )
+    group.add_argument(
+        "--ttt-context-window",
+        type=int,
+        default=32768,
+        help="Model context window used to cap phase-2 continuation.",
+    )
+    group.add_argument(
+        "--ttt-context-buffer",
+        type=int,
+        default=50,
+        help="Tokens left unused at the end of the model context window.",
+    )
+    group.add_argument(
+        "--ttt-phase2-prefill",
+        type=str,
+        default=None,
+        help=(
+            "Optional forced text between reasoning and final generation. By default, "
+            "gpt-oss uses the paper's final-channel marker and Qwen uses </think>."
+        ),
+    )
+
+    # --- Local GPU Mode / TriMul evaluator ---
+    group.add_argument(
+        "--ttt-trimul-profile",
+        choices=["smoke", "full"],
+        default="smoke",
+        help="TriMul evaluator suite: official-case subset for smoke or all 18 tests + 7 benchmarks.",
+    )
+    group.add_argument(
+        "--ttt-trimul-repeats",
+        type=int,
+        default=5,
+        help="CUDA-event timing repeats per TriMul benchmark (minimum three).",
+    )
+    group.add_argument(
+        "--ttt-trimul-gpu-device",
+        type=str,
+        default="0",
+        help="CUDA_VISIBLE_DEVICES value used by each isolated TriMul evaluator subprocess.",
+    )
+
+    # --- Local GPU Mode / MLA Decode A100 adaptation ---
+    group.add_argument(
+        "--ttt-mla-repeats",
+        type=int,
+        default=3,
+        help="CUDA-event timing repeats per MLA Decode A100 smoke shape (minimum three).",
+    )
+    group.add_argument(
+        "--ttt-mla-gpu-device",
+        type=str,
+        default="0",
+        help="CUDA_VISIBLE_DEVICES value used by the isolated MLA Decode evaluator.",
+    )
+    group.add_argument(
+        "--ttt-mla-official-root",
+        type=str,
+        default=_official_root(),
+        help="Official TTT-Discover checkout supplying MLA Decode inputs and reference.",
     )
 
     # --- Frontier-CS env + remote judge ---
@@ -147,5 +235,37 @@ def add_ttt_arguments(parser):
         type=float,
         default=3.0,
         help="Remote judge: seconds between result polls.",
+    )
+
+    # --- AtCoder Heuristic Contests (official released ALE-Bench artifacts) ---
+    group.add_argument(
+        "--ttt-ahc-cache-dir",
+        type=str,
+        default=_ahc_cache_dir(),
+        help="Released ALE-Bench cache containing public inputs and *_tester binaries.",
+    )
+    group.add_argument(
+        "--ttt-ahc-reference-root",
+        type=str,
+        default=_official_root(),
+        help="Official TTT-Discover checkout used for the released AHC prompt and seed code.",
+    )
+    group.add_argument(
+        "--ttt-ahc-max-cases",
+        type=int,
+        default=1,
+        help="Number of released public AHC cases per candidate; 1 is a smoke setting.",
+    )
+    group.add_argument(
+        "--ttt-ahc-time-limit",
+        type=float,
+        default=2.0,
+        help="Official candidate time limit per AHC public case, in seconds.",
+    )
+    group.add_argument(
+        "--ttt-ahc-reward-scale",
+        type=float,
+        default=1500.0,
+        help="Divide mean public score by this value, matching the official AHC evaluator.",
     )
     return parser

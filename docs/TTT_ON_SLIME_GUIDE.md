@@ -56,11 +56,11 @@ rollout extension point.**
 | Best-so-far prompt conditioning | `State.to_prompt` | `state.State.to_prompt` (faithful port) |
 | Sandbox reward | `SandboxRewardEvaluator` + Ray cpu pool | `sandbox.run_python_entrypoint` (subprocess) + env `evaluate` |
 | **Entropic adaptive-β advantage** | `compute_advantages` in `rl/train.py` | **slime core**: `--advantage-estimator entropic_adaptive_beta` |
-| KL-to-base penalty (`kl_penalty_coef`) | `incorporate_kl_penalty` | `--use-kl-loss --kl-loss-coef` + `--ref-load <base>` |
-| Importance-sampling PG loss | Tinker `loss_fn` | slime PPO/GRPO policy loss |
+| KL-to-base penalty (`kl_penalty_coef`) | `incorporate_kl_penalty` | `advantage.compute_ttt_advantages` + `--kl-coef` + `--ref-load` |
+| Importance-sampling PG loss | Tinker `loss_fn` | rollout log-prob ratio with PPO clipping disabled |
 | LoRA training | `create_lora_training_client_async` | **dropped** — slime Megatron full-parameter |
-| Two-phase reasoning sampler | `TwoPhaseTokenCompleter` | single-pass SGLang generation (chat template) |
-| Drop constant-reward groups | `remove_constant_reward_groups` | unnecessary — entropic zeroes flat groups (optional native filter) |
+| Two-phase reasoning sampler | `TwoPhaseTokenCompleter` | SGLang phase-1 + forced prefill + continuation |
+| Drop constant-reward groups | `remove_constant_reward_groups` | zero loss mask; retain first group if all are constant |
 
 Two halves fell out of this mapping:
 
@@ -210,9 +210,8 @@ Consequences to be aware of (documented in the run script & plugin README):
 - **Learning rate**: LoRA tolerated `4e-5`; full-parameter wants `1e-6`–`5e-7`.
 - **Memory/compute**: full-parameter updates a 4B–120B model every step, so the
   example uses TP/PP, recompute, and dynamic batching like slime's own scripts.
-- **KL anchor**: with full-parameter updates the policy can drift faster, so the
-  KL-to-base term (`--use-kl-loss` + `--ref-load <base>`) matters more; it is the
-  slime-idiomatic realization of the paper's `kl_penalty_coef`.
+- **KL anchor**: the paper does not use an independent KL loss. The custom TTT
+  advantage reproduces its mean-centered per-token term against `--ref-load`.
 
 ---
 
@@ -246,48 +245,60 @@ Consequences to be aware of (documented in the run script & plugin README):
 ## 7. Running and verifying
 
 ```bash
-# single node, Erdős example, Qwen3-4B, full-parameter:
-bash examples/ttt_discover/run-ttt-erdos-qwen3-4B.sh
+# Prepare Qwen3-4B HF + Megatron torch_dist checkpoints.
+bash local/prepare_qwen3_4b.sh
+
+# Safe single-node smoke: one Erdős rollout and one full-parameter train step.
+# This launcher owns and cleans up only its dedicated Ray process group.
+bash local/run_ttt_erdos_smoke.sh
 
 # CPU sanity (no GPU): the discovery objective's math
 python3 examples/ttt_discover/tests/test_entropic_advantage.py
 ```
 
-What was verified **on CPU** while building this (no GPUs in the dev box):
+The paper-aligned end-to-end smoke was verified on **8 x A100 80GB** with
+Qwen3-4B. Two of four generated Erdős programs passed the local verifier; all
+four completed after the forced phase transition with no truncation. The run
+expanded the archive, produced non-flat adaptive-entropic advantages, applied
+the official token-level KL shaping and rollout importance ratios, completed a
+Megatron forward/backward + optimizer step, synced weights, and saved a
+torch_dist checkpoint. Artifacts:
+
+- `checkpoints/qwen3-4b-ttt-erdos-valid-smoke/`
+- `checkpoints/qwen3-4b-ttt-erdos-valid-smoke/ttt_rollouts/rollout_000000.json`
+- `logs/ttt_erdos_valid_smoke_console.log`
+
+Also verified independently on CPU:
 
 - the entropic advantage math (constant→0, winner up-weighted, β solves to the
   target KL, contiguous groups independent, LOO behaviour, ragged-input guard);
+- the official mean-centered token-level KL advantage formula;
+- failed PUCT expansions increment visits and EOF-truncated code blocks parse;
 - the sandbox (normal return, exception surfaced, timeout, fs-write blocked,
   preamble injection);
 - the full discovery path on the Erdős env (seed → prompt conditioning → archive
   sample/update/persist → valid & invalid candidate scoring);
 - `py_compile` of all edited core files + the plugin.
 
-What inherently needs a **GPU cluster** (slime's own proven paths, wired to
-match its contracts but not run here): SGLang generation, Megatron
-full-parameter training, and weight sync.
-
 ---
 
 ## 8. Design decisions & alternatives considered
 
-- **Keep constant-reward groups instead of dropping them.** The entropic
-  advantage already gives them ~0 gradient, and keeping them fixes the batch size
-  so slime's group reshape stays simple. (Native
-  `--dynamic-sampling-filter-path …check_reward_nonzero_std` is available if you
-  prefer dropping, since slime 0.3 supports variable global batch size.)
-- **Advantage on the controller side, broadcast on the train side.** This mirrors
-  GRPO exactly and avoids a bespoke per-token advantage function; the entropic
-  scalar is computed once where the whole group is visible.
+- **Mask constant-reward groups.** Samples remain present for slime's batch
+  scheduler, but their loss masks are zero, reproducing the official filtering.
+  If every group is constant, the first group is retained like the reference.
+- **Split advantage computation.** The controller computes the group-level
+  entropic scalar; the trainer adds the official token-level, mean-centered
+  KL-to-base shaping after reference log-probs are available.
 - **Reward computed in the rollout, not via `rm_hub`.** The archive update needs
   the parsed construction/value anyway, so scoring there keeps everything in one
   place and avoids a second round-trip.
 - **Plugin args via `parse_args` hook, not core `arguments.py`.** Keeps
   TTT-specific flags out of slime core; only the *general* entropic estimator is
   promoted to core.
-- **Single-pass generation** instead of the paper's two-phase reasoning sampler —
-  simpler and model-agnostic; raise `--rollout-max-response-len` (and start from
-  the gpt-oss model script) for a faithful reasoning-heavy run.
+- **Two-phase generation** continues from the exact SGLang token prefix and masks
+  the forced transition tokens out of the loss. gpt-oss uses the paper's marker;
+  Qwen uses a `</think>` transition.
 
 ---
 
