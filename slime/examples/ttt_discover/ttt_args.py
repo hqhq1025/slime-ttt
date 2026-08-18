@@ -89,6 +89,35 @@ def add_ttt_arguments(parser):
         help="Optional override of the environment's target metric shown in prompts.",
     )
     group.add_argument(
+        "--ttt-lora-rank",
+        type=int,
+        default=0,
+        help="Enable Megatron-Bridge LoRA with this rank; zero keeps full-parameter training.",
+    )
+    group.add_argument(
+        "--ttt-lora-alpha",
+        type=int,
+        default=32,
+        help="LoRA alpha scaling. The official TTT-Discover configuration uses rank/alpha 32.",
+    )
+    group.add_argument(
+        "--ttt-lora-dropout",
+        type=float,
+        default=0.0,
+        help="LoRA dropout applied during the Megatron training forward pass.",
+    )
+    group.add_argument(
+        "--ttt-lora-target-modules",
+        nargs="+",
+        default=["linear_qkv", "linear_proj", "linear_fc1", "linear_fc2"],
+        help="Megatron linear module names receiving LoRA adapters.",
+    )
+    group.add_argument(
+        "--ttt-lora-resume",
+        action="store_true",
+        help="Load adapter tensors as well as base weights from an existing LoRA checkpoint.",
+    )
+    group.add_argument(
         "--ttt-phase1-max-context",
         type=int,
         default=0,

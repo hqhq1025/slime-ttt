@@ -667,14 +667,24 @@ class MegatronTrainRayActor(TrainRayActor):
             old_ckpt_step = self.args.ckpt_step
             self.args.ckpt_step = self.args.opd_teacher_ckpt_step
 
-        _, _ = load_checkpoint(
-            self.model,
-            None,
-            None,
-            checkpointing_context={},
-            skip_load_to_model_and_opt=False,
-        )
-        self.args.load, self.args.no_load_optim, self.args.no_load_rng, self.args.finetune = old_args
+        lora_base_load = int(getattr(self.args, "ttt_lora_rank", 0) or 0) > 0 and model_tag in {
+            "ref",
+            "teacher",
+        }
+        if lora_base_load:
+            os.environ["SLIME_TTT_LORA_BASE_CHECKPOINT_LOAD"] = "1"
+        try:
+            _, _ = load_checkpoint(
+                self.model,
+                None,
+                None,
+                checkpointing_context={},
+                skip_load_to_model_and_opt=False,
+            )
+        finally:
+            if lora_base_load:
+                os.environ.pop("SLIME_TTT_LORA_BASE_CHECKPOINT_LOAD", None)
+            self.args.load, self.args.no_load_optim, self.args.no_load_rng, self.args.finetune = old_args
 
         if old_ckpt_step is not None:
             self.args.ckpt_step = old_ckpt_step

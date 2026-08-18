@@ -41,6 +41,20 @@ AHC_TIME_LIMIT="${TTT_AHC_TIME_LIMIT:-2.0}"
 NUM_GPUS="${NUM_GPUS:-8}"
 RAY_PORT="${RAY_PORT:-6379}"
 DASHBOARD_PORT="${DASHBOARD_PORT:-8265}"
+LORA_RANK="${TTT_LORA_RANK:-0}"
+LORA_ALPHA="${TTT_LORA_ALPHA:-32}"
+LORA_DROPOUT="${TTT_LORA_DROPOUT:-0.0}"
+LR="${TTT_LR:-1e-6}"
+EXTRA_MODEL_ARGS=()
+EXTRA_SGLANG_ARGS=()
+if (( LORA_RANK > 0 )); then
+  # The base checkpoint predates adapter parameters. Load all matching frozen
+  # weights and retain the freshly initialized LoRA A/B matrices.
+  EXTRA_MODEL_ARGS+=(--dist-ckpt-strictness ignore_all)
+fi
+if [[ "${TTT_SGLANG_DISABLE_CUDA_GRAPH:-0}" == "1" ]]; then
+  EXTRA_SGLANG_ARGS+=(--sglang-disable-cuda-graph)
+fi
 
 [[ -s "${HF_MODEL}/config.json" ]] || { echo "Missing ${HF_MODEL}; run local/prepare_qwen3_4b.sh" >&2; exit 1; }
 [[ -s "${MCORE_MODEL}/latest_checkpointed_iteration.txt" ]] || { echo "Missing ${MCORE_MODEL}; run local/prepare_qwen3_4b.sh" >&2; exit 1; }
@@ -106,6 +120,7 @@ ray job submit --address="http://127.0.0.1:${DASHBOARD_PORT}" \
   --actor-num-gpus-per-node "${NUM_GPUS}" \
   --colocate \
   "${MODEL_ARGS[@]}" \
+  "${EXTRA_MODEL_ARGS[@]}" \
   --hf-checkpoint "${HF_MODEL}" \
   --ref-load "${MCORE_MODEL}" \
   --load "${MCORE_MODEL}" \
@@ -114,6 +129,9 @@ ray job submit --address="http://127.0.0.1:${DASHBOARD_PORT}" \
   --rollout-function-path examples.ttt_discover.ttt_rollout.generate_rollout \
   --ttt-env-path "${ENV_PATH}" \
   --ttt-target "${TARGET}" \
+  --ttt-lora-rank "${LORA_RANK}" \
+  --ttt-lora-alpha "${LORA_ALPHA}" \
+  --ttt-lora-dropout "${LORA_DROPOUT}" \
   --ttt-eval-timeout "${EVAL_TIMEOUT}" \
   --ttt-num-cpus-per-task "${NUM_CPUS_PER_TASK}" \
   --ttt-eval-concurrency "${EVAL_CONCURRENCY}" \
@@ -149,7 +167,7 @@ ray job submit --address="http://127.0.0.1:${DASHBOARD_PORT}" \
   --eps-clip inf \
   --eps-clip-high inf \
   --optimizer adam \
-  --lr 1e-6 \
+  --lr "${LR}" \
   --lr-decay-style constant \
   --weight-decay 0.0 \
   --adam-beta1 0.9 \
@@ -166,6 +184,7 @@ ray job submit --address="http://127.0.0.1:${DASHBOARD_PORT}" \
   --rollout-num-gpus-per-engine 2 \
   --sglang-mem-fraction-static 0.7 \
   --sglang-cuda-graph-max-bs 16 \
+  "${EXTRA_SGLANG_ARGS[@]}" \
   --attention-dropout 0.0 \
   --hidden-dropout 0.0 \
   --accumulate-allreduce-grads-in-fp32 \

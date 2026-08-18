@@ -53,9 +53,15 @@ def _get_megatron_full_params(
     params = []
     for info in megatron_local_param_infos:
         if dist.get_rank() == info.src_rank:
+            source_name = info.attrs.get("source_name", info.name)
+            source = megatron_local_weights[source_name].to(
+                device=torch.cuda.current_device(), non_blocking=True
+            )
+            if "lora_A_name" in info.attrs:
+                source = _merge_lora_source_weight(info, source, megatron_local_weights)
             params.append(
                 torch.nn.Parameter(
-                    megatron_local_weights[info.name].to(device=torch.cuda.current_device(), non_blocking=True),
+                    source,
                     requires_grad=False,
                 )
             )
@@ -105,6 +111,28 @@ def _get_megatron_full_params(
     return gathered_params
 
 
+def _merge_lora_source_weight(info: ParamInfo, base: torch.Tensor, source_weights) -> torch.Tensor:
+    """Merge one TP-local LoRA update into its frozen base shard for SGLang sync."""
+    a = source_weights[info.attrs["lora_A_name"]].to(device=base.device, non_blocking=True)
+    b = source_weights[info.attrs["lora_B_name"]].to(device=base.device, non_blocking=True)
+    rank = int(info.attrs["lora_rank"])
+    alpha = float(info.attrs["lora_alpha"])
+    tp_size = mpu.get_tensor_model_parallel_world_size()
+    tp_group = mpu.get_tensor_model_parallel_group()
+
+    if tp_size > 1 and a.shape[0] * tp_size == rank and b.shape[1] == rank:
+        shards = [torch.empty_like(a) for _ in range(tp_size)]
+        dist.all_gather(shards, a, group=tp_group)
+        a = torch.cat(shards, dim=0)
+    elif tp_size > 1 and b.shape[0] * tp_size == base.shape[0]:
+        shards = [torch.empty_like(b) for _ in range(tp_size)]
+        dist.all_gather(shards, b, group=tp_group)
+        b = torch.cat(shards, dim=0)
+
+    delta = b @ a
+    return base + delta.to(dtype=base.dtype).mul_(alpha / rank)
+
+
 def _get_megatron_local_param_info_buckets(args: Namespace, model: Sequence[torch.nn.Module]) -> list[list[ParamInfo]]:
     """
     Partition params into buckets ≤ update_weight_buffer_size (with TP replication).
@@ -143,22 +171,9 @@ def _get_megatron_local_param_infos(args: Namespace, model: Sequence[torch.nn.Mo
     pp_size = mpu.get_pipeline_model_parallel_world_size()
     ep_size = mpu.get_expert_model_parallel_world_size()
 
-    param_infos = {}
     rank = dist.get_rank()
-    for name, param in named_params_and_buffers(args, model):
-        param_infos[name] = ParamInfo(
-            name=name,
-            dtype=param.dtype,
-            shape=param.shape,
-            attrs={
-                "tensor_model_parallel": getattr(param, "tensor_model_parallel", False),
-                "partition_dim": getattr(param, "partition_dim", -1),
-                "partition_stride": getattr(param, "partition_stride", 1),
-                "parallel_mode": getattr(param, "parallel_mode", None),
-            },
-            size=param.numel() * param.element_size(),
-            src_rank=rank,
-        )
+    raw_params = dict(named_params_and_buffers(args, model))
+    param_infos = _build_local_param_info_dict(args, raw_params, rank)
 
     if pp_size > 1:
         param_infos_list = [None] * pp_size
@@ -208,4 +223,41 @@ def _get_megatron_local_param_infos(args: Namespace, model: Sequence[torch.nn.Mo
                 infos[i].dtype == param_info.dtype
             ), f"Parameter dtype mismatch: {infos[i].dtype} != {param_info.dtype}"
 
+    return param_infos
+
+
+def _build_local_param_info_dict(args: Namespace, raw_params, rank: int) -> dict[str, ParamInfo]:
+    """Build HF-sync metadata, flattening LoRA wrappers to base Megatron names."""
+    param_infos = {}
+    lora_enabled = int(getattr(args, "ttt_lora_rank", 0) or 0) > 0
+    for raw_name, param in raw_params.items():
+        if lora_enabled and ".adapter." in raw_name:
+            continue
+        name = raw_name.replace(".to_wrap.", ".") if lora_enabled else raw_name
+        attrs = {
+            "tensor_model_parallel": getattr(param, "tensor_model_parallel", False),
+            "partition_dim": getattr(param, "partition_dim", -1),
+            "partition_stride": getattr(param, "partition_stride", 1),
+            "parallel_mode": getattr(param, "parallel_mode", None),
+            "source_name": raw_name,
+        }
+        if lora_enabled and raw_name.endswith(".to_wrap.weight"):
+            prefix = raw_name[: -len(".to_wrap.weight")]
+            a_name = f"{prefix}.adapter.linear_in.weight"
+            b_name = f"{prefix}.adapter.linear_out.weight"
+            if a_name in raw_params and b_name in raw_params:
+                attrs.update(
+                    lora_A_name=a_name,
+                    lora_B_name=b_name,
+                    lora_rank=int(args.ttt_lora_rank),
+                    lora_alpha=int(args.ttt_lora_alpha),
+                )
+        param_infos[name] = ParamInfo(
+            name=name,
+            dtype=param.dtype,
+            shape=param.shape,
+            attrs=attrs,
+            size=param.numel() * param.element_size(),
+            src_rank=rank,
+        )
     return param_infos

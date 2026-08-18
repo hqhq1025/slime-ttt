@@ -8,6 +8,7 @@ export TTT_STORAGE_ROOT="${TTT_STORAGE_ROOT:-$(dirname -- "${TTT_ROOT}")/ttt-sto
 export TTT_VENV="${TTT_VENV:-${TTT_ROOT}/.venv}"
 export CUDA_HOME="${CUDA_HOME:-${TTT_ROOT}/cuda-12.8}"
 export MEGATRON_PATH="${MEGATRON_PATH:-${TTT_ROOT}/Megatron-LM}"
+export MEGATRON_BRIDGE_PATH="${MEGATRON_BRIDGE_PATH:-${TTT_ROOT}/Megatron-Bridge/src}"
 export SLIME_PATH="${SLIME_PATH:-${TTT_ROOT}/slime}"
 export SGLANG_SOURCE="${SGLANG_SOURCE:-${TTT_ROOT}/sglang/python}"
 export TTT_OFFICIAL_ROOT="${TTT_OFFICIAL_ROOT:-$(dirname -- "${TTT_ROOT}")/ttt-discover-official}"
@@ -17,7 +18,7 @@ export PATH="${TTT_VENV}/bin:${CUDA_HOME}/bin:${PATH}"
 export LD_LIBRARY_PATH="${CUDA_HOME}/lib:${CUDA_HOME}/lib64:${LD_LIBRARY_PATH:-}"
 # slime and Megatron both ship a top-level `examples` package. Keep slime
 # first so examples.ttt_discover resolves to the local TTT implementation.
-export PYTHONPATH="${SLIME_PATH}:${MEGATRON_PATH}:${SGLANG_SOURCE}:${PYTHONPATH:-}"
+export PYTHONPATH="${SLIME_PATH}:${MEGATRON_PATH}:${MEGATRON_BRIDGE_PATH}:${SGLANG_SOURCE}:${PYTHONPATH:-}"
 
 # PyTorch's CUDA component wheels keep development headers/libraries under
 # site-packages/nvidia rather than CUDA_HOME. Expose them to native builds.

@@ -255,6 +255,31 @@ def wrap_model_provider_with_freeze(original_provider, args):
                 provider_kwargs[key] = kwargs.get(key, None)
 
         model = original_provider(**provider_kwargs)
+        lora_rank = int(getattr(args, "ttt_lora_rank", 0) or 0)
+        if lora_rank > 0:
+            from .lora_utils import get_bridge_lora_class
+
+            LoRA = get_bridge_lora_class()
+            lora = LoRA(
+                target_modules=list(args.ttt_lora_target_modules),
+                dim=lora_rank,
+                alpha=int(args.ttt_lora_alpha),
+                dropout=float(args.ttt_lora_dropout),
+            )
+            model = lora(model, training=True)
+            model._slime_ttt_lora = {
+                "rank": lora_rank,
+                "alpha": int(args.ttt_lora_alpha),
+                "target_modules": list(args.ttt_lora_target_modules),
+            }
+            total = sum(param.numel() for param in model.parameters())
+            trainable = sum(param.numel() for param in model.parameters() if param.requires_grad)
+            if torch.distributed.get_rank() == 0:
+                print(
+                    f"[TTT LoRA] rank={lora_rank} alpha={args.ttt_lora_alpha} "
+                    f"trainable={trainable:,}/{total:,} ({100 * trainable / total:.4f}%)",
+                    flush=True,
+                )
         freeze_model_params(model, args)
 
         return model

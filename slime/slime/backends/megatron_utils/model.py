@@ -951,13 +951,22 @@ def initialize_model_and_optimizer(
     model[0].role = role
     reinit_critic_output_layer = _critic_output_layer_needs_reinit(args, model, role)
     clear_memory()
-    iteration, _ = load_checkpoint(
-        model,
-        optimizer,
-        opt_param_scheduler,
-        checkpointing_context={},
-        skip_load_to_model_and_opt=False,
+    lora_base_load = int(getattr(args, "ttt_lora_rank", 0) or 0) > 0 and not bool(
+        getattr(args, "ttt_lora_resume", False)
     )
+    if lora_base_load:
+        os.environ["SLIME_TTT_LORA_BASE_CHECKPOINT_LOAD"] = "1"
+    try:
+        iteration, _ = load_checkpoint(
+            model,
+            optimizer,
+            opt_param_scheduler,
+            checkpointing_context={},
+            skip_load_to_model_and_opt=False,
+        )
+    finally:
+        if lora_base_load:
+            os.environ.pop("SLIME_TTT_LORA_BASE_CHECKPOINT_LOAD", None)
     if reinit_critic_output_layer:
         _reinitialize_critic_output_layer(model)
         if (args.fp16 or args.bf16) and optimizer is not None:
