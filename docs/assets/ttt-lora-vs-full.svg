@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="960" viewBox="0 0 1280 960" role="img" aria-labelledby="title desc">
+<title id="title">Qwen3-4B TTT full-parameter versus rank-32 LoRA</title>
+<desc id="desc">Cross-domain final objective, validity rate, and normalized best-so-far progress comparison.</desc>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<g font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif">
+<text x="50.0" y="52.0" font-size="28" text-anchor="start" font-weight="750" fill="#172033">Qwen3-4B TTT: full parameter vs LoRA r=32</text>
+<text x="50.0" y="80.0" font-size="14" text-anchor="start" font-weight="400" fill="#657086">Matched online-search budgets; positive bars favor LoRA. One run per method; trajectories are regenerated online.</text>
+<text x="50.0" y="125.0" font-size="18" text-anchor="start" font-weight="700" fill="#172033">Final objective advantage</text>
+<line x1="332.5" y1="147.0" x2="332.5" y2="450.0" stroke="#657086" stroke-width="1.2"/>
+<text x="138.0" y="167.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">Erdős</text>
+<rect x="330.5" y="155.0" width="2.0" height="16" rx="2" fill="#d64550"/>
+<text x="324.5" y="167.0" font-size="11" text-anchor="end" font-weight="600" fill="#d64550">-0.06%</text>
+<text x="138.0" y="197.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">AC1</text>
+<rect x="178.5" y="185.0" width="154.0" height="16" rx="2" fill="#d64550"/>
+<text x="172.5" y="197.0" font-size="11" text-anchor="end" font-weight="600" fill="#d64550">-4.98%</text>
+<text x="138.0" y="227.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">AC2</text>
+<rect x="332.5" y="215.0" width="106.3" height="16" rx="2" fill="#0f9d78"/>
+<text x="444.8" y="227.0" font-size="11" text-anchor="start" font-weight="600" fill="#0f9d78">+3.44%</text>
+<text x="138.0" y="257.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">Circle 26</text>
+<rect x="332.5" y="245.0" width="1.0" height="16" rx="2" fill="#8a94a6"/>
+<text x="326.5" y="257.0" font-size="11" text-anchor="end" font-weight="600" fill="#8a94a6">tie</text>
+<text x="138.0" y="287.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">Circle 32</text>
+<rect x="332.5" y="275.0" width="1.0" height="16" rx="2" fill="#8a94a6"/>
+<text x="338.5" y="287.0" font-size="11" text-anchor="start" font-weight="600" fill="#8a94a6">tie</text>
+<text x="138.0" y="317.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">TriMul</text>
+<rect x="332.5" y="305.0" width="1.0" height="16" rx="2" fill="#8a94a6"/>
+<text x="338.5" y="317.0" font-size="11" text-anchor="start" font-weight="600" fill="#8a94a6">tie</text>
+<text x="138.0" y="347.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">MLA</text>
+<rect x="332.5" y="335.0" width="1.0" height="16" rx="2" fill="#8a94a6"/>
+<text x="338.5" y="347.0" font-size="11" text-anchor="start" font-weight="600" fill="#8a94a6">tie</text>
+<text x="138.0" y="377.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">AHC039</text>
+<rect x="332.5" y="365.0" width="1.0" height="16" rx="2" fill="#8a94a6"/>
+<text x="338.5" y="377.0" font-size="11" text-anchor="start" font-weight="600" fill="#8a94a6">tie</text>
+<text x="138.0" y="407.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">AHC058</text>
+<rect x="331.2" y="395.0" width="1.3" height="16" rx="2" fill="#d64550"/>
+<text x="325.2" y="407.0" font-size="11" text-anchor="end" font-weight="600" fill="#d64550">-0.04%</text>
+<text x="138.0" y="437.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">Denoising</text>
+<rect x="332.5" y="425.0" width="1.0" height="16" rx="2" fill="#8a94a6"/>
+<text x="338.5" y="437.0" font-size="11" text-anchor="start" font-weight="600" fill="#8a94a6">tie</text>
+<text x="325.5" y="463.0" font-size="11" text-anchor="end" font-weight="400" fill="#657086">Full better</text>
+<text x="339.5" y="463.0" font-size="11" text-anchor="start" font-weight="400" fill="#657086">LoRA better</text>
+<text x="665.0" y="125.0" font-size="18" text-anchor="start" font-weight="700" fill="#172033">Valid-rollout rate difference</text>
+<line x1="947.5" y1="147.0" x2="947.5" y2="450.0" stroke="#657086" stroke-width="1.2"/>
+<text x="753.0" y="167.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">Erdős</text>
+<rect x="947.5" y="155.0" width="8.0" height="16" rx="2" fill="#0f9d78"/>
+<text x="961.5" y="167.0" font-size="11" text-anchor="start" font-weight="600" fill="#0f9d78">+1.95 pp</text>
+<text x="753.0" y="197.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">AC1</text>
+<rect x="935.9" y="185.0" width="11.6" height="16" rx="2" fill="#d64550"/>
+<text x="929.9" y="197.0" font-size="11" text-anchor="end" font-weight="600" fill="#d64550">-2.81 pp</text>
+<text x="753.0" y="227.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">AC2</text>
+<rect x="945.1" y="215.0" width="2.4" height="16" rx="2" fill="#d64550"/>
+<text x="939.1" y="227.0" font-size="11" text-anchor="end" font-weight="600" fill="#d64550">-0.59 pp</text>
+<text x="753.0" y="257.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">Circle 26</text>
+<rect x="942.4" y="245.0" width="5.1" height="16" rx="2" fill="#d64550"/>
+<text x="936.4" y="257.0" font-size="11" text-anchor="end" font-weight="600" fill="#d64550">-1.25 pp</text>
+<text x="753.0" y="287.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">Circle 32</text>
+<rect x="856.4" y="275.0" width="91.1" height="16" rx="2" fill="#d64550"/>
+<text x="850.4" y="287.0" font-size="11" text-anchor="end" font-weight="600" fill="#d64550">-22.19 pp</text>
+<text x="753.0" y="317.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">TriMul</text>
+<rect x="947.5" y="305.0" width="34.2" height="16" rx="2" fill="#0f9d78"/>
+<text x="987.7" y="317.0" font-size="11" text-anchor="start" font-weight="600" fill="#0f9d78">+8.33 pp</text>
+<text x="753.0" y="347.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">MLA</text>
+<rect x="947.5" y="335.0" width="1.0" height="16" rx="2" fill="#8a94a6"/>
+<text x="953.5" y="347.0" font-size="11" text-anchor="start" font-weight="600" fill="#8a94a6">tie</text>
+<text x="753.0" y="377.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">AHC039</text>
+<rect x="947.5" y="365.0" width="1.0" height="16" rx="2" fill="#8a94a6"/>
+<text x="953.5" y="377.0" font-size="11" text-anchor="start" font-weight="600" fill="#8a94a6">tie</text>
+<text x="753.0" y="407.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">AHC058</text>
+<rect x="947.5" y="395.0" width="154.0" height="16" rx="2" fill="#0f9d78"/>
+<text x="1107.5" y="407.0" font-size="11" text-anchor="start" font-weight="600" fill="#0f9d78">+37.50 pp</text>
+<text x="753.0" y="437.0" font-size="12" text-anchor="end" font-weight="400" fill="#657086">Denoising</text>
+<rect x="896.2" y="425.0" width="51.3" height="16" rx="2" fill="#d64550"/>
+<text x="890.2" y="437.0" font-size="11" text-anchor="end" font-weight="600" fill="#d64550">-12.50 pp</text>
+<text x="940.5" y="463.0" font-size="11" text-anchor="end" font-weight="400" fill="#657086">Full better</text>
+<text x="954.5" y="463.0" font-size="11" text-anchor="start" font-weight="400" fill="#657086">LoRA better</text>
+<text x="50.0" y="472.0" font-size="18" text-anchor="start" font-weight="700" fill="#172033">Best-so-far progress from each run&#x27;s step 0</text>
+<line x1="875.0" y1="466.0" x2="905.0" y2="466.0" stroke="#2563eb" stroke-width="3"/>
+<text x="913.0" y="471.0" font-size="12" text-anchor="start" font-weight="400" fill="#657086">Full</text>
+<line x1="975.0" y1="466.0" x2="1005.0" y2="466.0" stroke="#e4572e" stroke-width="3"/>
+<text x="1013.0" y="471.0" font-size="12" text-anchor="start" font-weight="400" fill="#657086">LoRA r=32</text>
+<text x="50.0" y="500.0" font-size="14" text-anchor="start" font-weight="700" fill="#172033">Erdős</text>
+<rect x="86.0" y="516.0" width="340.0" height="147.0" fill="#ffffff" stroke="#d8dee9"/>
+<line x1="86.0" y1="647.7" x2="426.0" y2="647.7" stroke="#d8dee9" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="81.0" y="524.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">0.9%</text>
+<text x="81.0" y="663.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">-0.1%</text>
+<polyline points="86.0,647.7 123.8,626.3 161.6,626.3 199.3,626.3 237.1,626.3 274.9,626.3 312.7,625.2 350.4,625.2 388.2,625.2 426.0,621.2" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="86.0" cy="647.7" r="2.8" fill="#2563eb"/>
+<circle cx="123.8" cy="626.3" r="2.8" fill="#2563eb"/>
+<circle cx="161.6" cy="626.3" r="2.8" fill="#2563eb"/>
+<circle cx="199.3" cy="626.3" r="2.8" fill="#2563eb"/>
+<circle cx="237.1" cy="626.3" r="2.8" fill="#2563eb"/>
+<circle cx="274.9" cy="626.3" r="2.8" fill="#2563eb"/>
+<circle cx="312.7" cy="625.2" r="2.8" fill="#2563eb"/>
+<circle cx="350.4" cy="625.2" r="2.8" fill="#2563eb"/>
+<circle cx="388.2" cy="625.2" r="2.8" fill="#2563eb"/>
+<circle cx="426.0" cy="621.2" r="2.8" fill="#2563eb"/>
+<polyline points="86.0,647.7 123.8,647.7 161.6,563.1 199.3,541.2 237.1,541.2 274.9,538.4 312.7,538.4 350.4,531.3 388.2,531.3 426.0,531.3" fill="none" stroke="#e4572e" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="86.0" cy="647.7" r="2.8" fill="#e4572e"/>
+<circle cx="123.8" cy="647.7" r="2.8" fill="#e4572e"/>
+<circle cx="161.6" cy="563.1" r="2.8" fill="#e4572e"/>
+<circle cx="199.3" cy="541.2" r="2.8" fill="#e4572e"/>
+<circle cx="237.1" cy="541.2" r="2.8" fill="#e4572e"/>
+<circle cx="274.9" cy="538.4" r="2.8" fill="#e4572e"/>
+<circle cx="312.7" cy="538.4" r="2.8" fill="#e4572e"/>
+<circle cx="350.4" cy="531.3" r="2.8" fill="#e4572e"/>
+<circle cx="388.2" cy="531.3" r="2.8" fill="#e4572e"/>
+<circle cx="426.0" cy="531.3" r="2.8" fill="#e4572e"/>
+<text x="86.0" y="679.0" font-size="10" text-anchor="start" font-weight="400" fill="#657086">step 0</text>
+<text x="426.0" y="679.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">step 9</text>
+<text x="460.0" y="500.0" font-size="14" text-anchor="start" font-weight="700" fill="#172033">AC1</text>
+<rect x="496.0" y="516.0" width="340.0" height="147.0" fill="#ffffff" stroke="#d8dee9"/>
+<line x1="496.0" y1="648.8" x2="836.0" y2="648.8" stroke="#d8dee9" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="491.0" y="524.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">15.0%</text>
+<text x="491.0" y="663.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">-1.6%</text>
+<polyline points="496.0,648.8 581.0,601.5 666.0,574.7 751.0,565.1 836.0,530.2" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="496.0" cy="648.8" r="2.8" fill="#2563eb"/>
+<circle cx="581.0" cy="601.5" r="2.8" fill="#2563eb"/>
+<circle cx="666.0" cy="574.7" r="2.8" fill="#2563eb"/>
+<circle cx="751.0" cy="565.1" r="2.8" fill="#2563eb"/>
+<circle cx="836.0" cy="530.2" r="2.8" fill="#2563eb"/>
+<polyline points="496.0,648.8 581.0,587.8 666.0,558.4 751.0,558.4 836.0,558.4" fill="none" stroke="#e4572e" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="496.0" cy="648.8" r="2.8" fill="#e4572e"/>
+<circle cx="581.0" cy="587.8" r="2.8" fill="#e4572e"/>
+<circle cx="666.0" cy="558.4" r="2.8" fill="#e4572e"/>
+<circle cx="751.0" cy="558.4" r="2.8" fill="#e4572e"/>
+<circle cx="836.0" cy="558.4" r="2.8" fill="#e4572e"/>
+<text x="496.0" y="679.0" font-size="10" text-anchor="start" font-weight="400" fill="#657086">step 0</text>
+<text x="836.0" y="679.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">step 4</text>
+<text x="870.0" y="500.0" font-size="14" text-anchor="start" font-weight="700" fill="#172033">AC2</text>
+<rect x="906.0" y="516.0" width="340.0" height="147.0" fill="#ffffff" stroke="#d8dee9"/>
+<line x1="906.0" y1="648.8" x2="1246.0" y2="648.8" stroke="#d8dee9" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="901.0" y="524.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">9.1%</text>
+<text x="901.0" y="663.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">-1.0%</text>
+<polyline points="906.0,648.8 991.0,647.6 1076.0,610.8 1161.0,581.3 1246.0,581.3" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="906.0" cy="648.8" r="2.8" fill="#2563eb"/>
+<circle cx="991.0" cy="647.6" r="2.8" fill="#2563eb"/>
+<circle cx="1076.0" cy="610.8" r="2.8" fill="#2563eb"/>
+<circle cx="1161.0" cy="581.3" r="2.8" fill="#2563eb"/>
+<circle cx="1246.0" cy="581.3" r="2.8" fill="#2563eb"/>
+<polyline points="906.0,648.8 991.0,552.8 1076.0,530.2 1161.0,530.2 1246.0,530.2" fill="none" stroke="#e4572e" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="906.0" cy="648.8" r="2.8" fill="#e4572e"/>
+<circle cx="991.0" cy="552.8" r="2.8" fill="#e4572e"/>
+<circle cx="1076.0" cy="530.2" r="2.8" fill="#e4572e"/>
+<circle cx="1161.0" cy="530.2" r="2.8" fill="#e4572e"/>
+<circle cx="1246.0" cy="530.2" r="2.8" fill="#e4572e"/>
+<text x="906.0" y="679.0" font-size="10" text-anchor="start" font-weight="400" fill="#657086">step 0</text>
+<text x="1246.0" y="679.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">step 4</text>
+<text x="50.0" y="720.0" font-size="14" text-anchor="start" font-weight="700" fill="#172033">Circle 26</text>
+<rect x="86.0" y="736.0" width="340.0" height="147.0" fill="#ffffff" stroke="#d8dee9"/>
+<line x1="86.0" y1="868.8" x2="426.0" y2="868.8" stroke="#d8dee9" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="81.0" y="744.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">75.6%</text>
+<text x="81.0" y="883.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">-8.1%</text>
+<polyline points="86.0,868.8 171.0,783.1 256.0,783.1 341.0,759.3 426.0,750.2" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="86.0" cy="868.8" r="2.8" fill="#2563eb"/>
+<circle cx="171.0" cy="783.1" r="2.8" fill="#2563eb"/>
+<circle cx="256.0" cy="783.1" r="2.8" fill="#2563eb"/>
+<circle cx="341.0" cy="759.3" r="2.8" fill="#2563eb"/>
+<circle cx="426.0" cy="750.2" r="2.8" fill="#2563eb"/>
+<polyline points="86.0,868.8 171.0,868.8 256.0,868.8 341.0,868.8 426.0,868.8" fill="none" stroke="#e4572e" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="86.0" cy="868.8" r="2.8" fill="#e4572e"/>
+<circle cx="171.0" cy="868.8" r="2.8" fill="#e4572e"/>
+<circle cx="256.0" cy="868.8" r="2.8" fill="#e4572e"/>
+<circle cx="341.0" cy="868.8" r="2.8" fill="#e4572e"/>
+<circle cx="426.0" cy="868.8" r="2.8" fill="#e4572e"/>
+<text x="86.0" y="899.0" font-size="10" text-anchor="start" font-weight="400" fill="#657086">step 0</text>
+<text x="426.0" y="899.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">step 4</text>
+<text x="460.0" y="720.0" font-size="14" text-anchor="start" font-weight="700" fill="#172033">Circle 32</text>
+<rect x="496.0" y="736.0" width="340.0" height="147.0" fill="#ffffff" stroke="#d8dee9"/>
+<line x1="496.0" y1="868.8" x2="836.0" y2="868.8" stroke="#d8dee9" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="491.0" y="744.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">19.8%</text>
+<text x="491.0" y="883.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">-2.1%</text>
+<polyline points="496.0,868.8 581.0,862.8 666.0,775.2 751.0,750.2 836.0,750.2" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="496.0" cy="868.8" r="2.8" fill="#2563eb"/>
+<circle cx="581.0" cy="862.8" r="2.8" fill="#2563eb"/>
+<circle cx="666.0" cy="775.2" r="2.8" fill="#2563eb"/>
+<circle cx="751.0" cy="750.2" r="2.8" fill="#2563eb"/>
+<circle cx="836.0" cy="750.2" r="2.8" fill="#2563eb"/>
+<polyline points="496.0,868.8 581.0,868.8 666.0,868.8 751.0,868.8 836.0,868.8" fill="none" stroke="#e4572e" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="496.0" cy="868.8" r="2.8" fill="#e4572e"/>
+<circle cx="581.0" cy="868.8" r="2.8" fill="#e4572e"/>
+<circle cx="666.0" cy="868.8" r="2.8" fill="#e4572e"/>
+<circle cx="751.0" cy="868.8" r="2.8" fill="#e4572e"/>
+<circle cx="836.0" cy="868.8" r="2.8" fill="#e4572e"/>
+<text x="496.0" y="899.0" font-size="10" text-anchor="start" font-weight="400" fill="#657086">step 0</text>
+<text x="836.0" y="899.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">step 4</text>
+<text x="870.0" y="720.0" font-size="14" text-anchor="start" font-weight="700" fill="#172033">AHC058</text>
+<rect x="906.0" y="736.0" width="340.0" height="147.0" fill="#ffffff" stroke="#d8dee9"/>
+<line x1="906.0" y1="868.8" x2="1246.0" y2="868.8" stroke="#d8dee9" stroke-width="1" stroke-dasharray="3 3"/>
+<text x="901.0" y="744.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">49.3%</text>
+<text x="901.0" y="883.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">-5.3%</text>
+<polyline points="906.0,868.8 1246.0,750.2" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="906.0" cy="868.8" r="2.8" fill="#2563eb"/>
+<circle cx="1246.0" cy="750.2" r="2.8" fill="#2563eb"/>
+<polyline points="906.0,868.8 1246.0,847.0" fill="none" stroke="#e4572e" stroke-width="2.4" stroke-linejoin="round"/>
+<circle cx="906.0" cy="868.8" r="2.8" fill="#e4572e"/>
+<circle cx="1246.0" cy="847.0" r="2.8" fill="#e4572e"/>
+<text x="906.0" y="899.0" font-size="10" text-anchor="start" font-weight="400" fill="#657086">step 0</text>
+<text x="1246.0" y="899.0" font-size="10" text-anchor="end" font-weight="400" fill="#657086">step 1</text>
+<text x="50.0" y="936.0" font-size="12" text-anchor="start" font-weight="400" fill="#657086">Objective bars compare absolute final quality; curves compare within-run improvement and do not imply identical sampled trajectories.</text>
+</g>
+</svg>

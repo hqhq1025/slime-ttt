@@ -12,10 +12,11 @@ without requiring Tinker. It supports all five domains from the paper:
 - algorithm engineering: AHC039 and AHC058;
 - biological discovery: single-cell RNA-seq denoising.
 
-> The original paper trains LoRA adapters through Tinker. This port uses slime
-> full-parameter training. The discovery loop, PUCT archive, adaptive-entropic
-> objective, token-level KL shaping, importance ratios, and two-phase generation
-> are aligned with the released implementation; the training backend differs.
+> The original paper trains LoRA adapters through Tinker. This port supports
+> both slime full-parameter training and native rank-configurable LoRA training.
+> The discovery loop, PUCT archive, adaptive-entropic objective, token-level KL
+> shaping, importance ratios, and two-phase generation are aligned with the
+> released implementation; the training backend differs.
 
 ## Reproduction status
 
@@ -39,6 +40,8 @@ The local campaign used Qwen3-4B on **8×A100 80GB**, plus 128 CPU cores and
 
 See [the complete reproduction table](docs/TTT_REPRODUCTION_RESULTS.md) for
 budgets, evidence paths, official values, and exact comparability notes.
+The matched full-parameter/LoRA campaign, including saved curves, is documented
+in [TTT_LORA_VS_FULL_AB.md](docs/TTT_LORA_VS_FULL_AB.md).
 
 The A100 kernel measurements are hardware adaptations, not substitutes for the
 paper's H100/H200/MI300X scores. Public AHC inputs are not the hidden AtCoder
@@ -131,6 +134,7 @@ local/
 docs/
 ├── PORTABLE_TTT_RUNBOOK.md
 ├── TTT_PAPER_ALIGNMENT_AUDIT.md
+├── TTT_LORA_VS_FULL_AB.md
 └── TTT_REPRODUCTION_RESULTS.md
 ```
 

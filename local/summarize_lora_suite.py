@@ -9,6 +9,7 @@ from pathlib import Path
 
 
 RUNS = {
+    "erdos": ("qwen3-4b-ttt-erdos-8x16x10", "qwen3-4b-ttt-erdos-lora-r32-8x16x10", -1),
     "ac1": ("qwen3-4b-ttt-ac1-8x16x5", "qwen3-4b-ttt-ac1-lora-r32-8x16x5", -1),
     "ac2": ("qwen3-4b-ttt-ac2-8x16x5", "qwen3-4b-ttt-ac2-lora-r32-8x16x5", 1),
     "circle26": ("qwen3-4b-ttt-circle26-8x16x5", "qwen3-4b-ttt-circle26-lora-r32-8x16x5", 1),
